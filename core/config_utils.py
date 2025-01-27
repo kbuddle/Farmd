@@ -1,8 +1,10 @@
-from config.config import COLUMN_DEFINITIONS, DEBUG
+from config.config_data import COLUMN_DEFINITIONS, DEBUG
 
 def get_column_attribute_for_context(context, attribute):
     """
     Retrieve a list of specified attributes for a given context from COLUMN_DEFINITIONS.
+    
+    from core.config_utils import get_column_attribute_for_context
 
     Args:
         context (str): The table or context name (e.g., "Assemblies").
@@ -21,4 +23,3 @@ def get_column_attribute_for_context(context, attribute):
         if attribute in col_props
     ]
 
-####################################

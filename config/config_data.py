@@ -1,3 +1,7 @@
+DEBUG = True
+
+DATABASE = "D:\FarmbotPythonV2\Farmbot.db"
+
 COLUMN_DEFINITIONS = {
     "Assemblies": {
         "columns": {
@@ -104,5 +108,3 @@ COLUMN_DEFINITIONS = {
     }
 }
 
-DEBUG = True
-DATABASE = "D:\FarmbotPythonV2.Farmbot.db"
