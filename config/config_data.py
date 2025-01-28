@@ -7,15 +7,15 @@ COLUMN_DEFINITIONS = {
         "columns": {
             "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True},
             "AssemName": {"display_name": "Name", "width": 200, "type": "string"},
-            "ParentAssemblyID": {"display_name": "Parent Assembly", "width": 100, "type": "int"},
+            "ParentAssemblyID": {"display_name": "Parent Assembly", "width": 100, "type": "int", "default": 40},
             "AssemImageRef": {"display_name": "Image Reference", "width": 150, "type": "string"},
             "AssemImage": {"display_name": "Image", "width": 150, "type": "blob", "admin": True},
-            "AssemDwgID": {"display_name": "Drawing ID", "width": 100, "type": "int"},
+            "AssemDwgID": {"display_name": "Drawing ID", "width": 200, "type": "int", "default": 266},
             "AssemCost": {"display_name": "Cost", "width": 80, "type": "numeric"},
             "AssemWeight": {"display_name": "Weight", "width": 80, "type": "numeric"},
             "AssemHoursParts": {"display_name": "Hours (Parts)", "width": 100, "type": "numeric", "default": 0},
             "AssemHoursAssembly": {"display_name": "Hours (Assembly)", "width": 100, "type": "numeric", "default": 0},
-            "AssemTotalHours": {"display_name": "Total Hours", "width": 100, "type": "numeric"},
+            "AssemTotalHours": {"display_name": "Total Hours", "width": 100, "type": "numeric", "admin": True},
             "AssemFocus": {"display_name": "Focus", "width": 100, "type": "string", "default": "Medium"},
             "AssemCostFlag": {"display_name": "Cost Flag", "width": 80, "type": "int", "default": 0},
             "AssemWeightFlag": {"display_name": "Weight Flag", "width": 80, "type": "int", "default": 0},
@@ -35,7 +35,7 @@ COLUMN_DEFINITIONS = {
             "Notes": {"display_name": "Notes", "width": 100, "type": "string", "parts": True},
             "Manufacturer": {"display_name": "Manufacturer", "width": 100, "type": "string", "parts": True},
             "ImageRef": {"display_name": "ImageRef", "width": 100, "type": "string"},
-            "DrawingID": {"display_name": "DrawingID", "width": 100, "type": "int", "default": 0},
+            "DrawingID": {"display_name": "DrawingID", "width": 100, "type": "int", "foreign_key": True, "default": 266},
             "ManPartNum": {"display_name": "ManPartNum", "width": 100, "type": "string", "parts": True},
             "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase"},
             "PartWeight": {"display_name": "Weight", "width": 80, "type": "float", "default": 0},
@@ -47,27 +47,11 @@ COLUMN_DEFINITIONS = {
             "SupplierID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True},
             "SupplierName": {"display_name": "Name", "width": 200, "type": "string"},
             "PricePerUnit": {"display_name": "Price/Unit", "width": 100, "type": "float", "default": 0.0},
-            "PartID": {"display_name": "PartID", "width": 50, "type": "int", "default": 0},
+            "PartID": {"display_name": "PartID", "width": 50, "type": "int", "foreign_key": True, "default": 50},
             "UnitOfOrder": {"display_name": "Unit of Order", "width": 100, "type": "string"},
             "WebRef": {"display_name": "Web URL", "width": 200, "type": "string"},
             "Manuf": {"display_name": "Manufacturer", "width": 100, "type": "string"},
             "ManPartNum": {"display_name": "Man. Part Num.", "width": 100, "type": "string"}
-        }
-    },
-    "Components": {
-        "columns": {
-            "AssemblyPartID": {"display_name": "ID", "width": 60, "is_primary_key": True},
-            "Quantity": {"display_name": "Quantity", "width": 100},
-            "PartName": {"display_name": "Component Name", "width": 150},
-            "Dimensions": {"display_name": "Dimensions", "width": 100},
-            "Model": {"display_name": "Model", "width": 100},
-            "Make": {"display_name": "Make", "width": 100},
-            "Manufacturer": {"display_name": "Manufacturer", "width": 150},
-            "ManPartNum": {"display_name": "Part Number", "width": 100},
-            "Notes": {"display_name": "Notes", "width": 200},
-            "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase"},
-            "PartWeight": {"display_name": "Weight", "width": 100, "default": 0},
-            "PartMaterial": {"display_name": "Material", "width": 100}
         }
     },
     "Drawings": {
@@ -80,14 +64,14 @@ COLUMN_DEFINITIONS = {
             "Size": {"display_name": "Size", "width": 80, "type": "numeric"},
             "Status": {"display_name": "Status", "width": 100, "type": "string"},
             "Revision": {"display_name": "Revision", "width": 80, "type": "int"},
-            "RelatedItemID": {"display_name": "Related Item ID", "width": 100, "type": "int"}
+            "RelatedItemID": {"display_name": "Related PartID", "width": 100, "type": "int", "foreign_key": True, "default": 50}
         }
     },
     "Images": {
         "columns": {
             "ImageID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True},
             "ImageName": {"display_name": "Name", "width": 200, "type": "string"},
-            "ImageData": {"display_name": "BlobData", "width": 150, "type": "blob"}
+            "ImageData": {"display_name": "BlobData", "width": 150, "type": "blob", "admin": True}
         }
     },
     "Assemblies_Parts": {
@@ -96,7 +80,7 @@ COLUMN_DEFINITIONS = {
             "ParentAssemblyID": {"display_name": "ParentAssemblyID", "width": 50, "type": "int"},
             "EntityType": {"display_name": "Entity Type", "width": 150, "type": "string"},
             "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase"},
-            "AssemblyID": {"display_name": "Assembly ID", "width": 60, "type": "int", "is_primary_key": True},
+            "ChildAssemblyID": {"display_name": "ChildAssembly ID", "width": 60, "type": "int", "foreign_key": True },
             "PartID": {"display_name": "Part ID", "width": 60, "type": "int"},
             "Quantity": {"display_name": "Quantity", "width": 60, "type": "real"},
             "HoursParts": {"display_name": "Hours for Parts", "width": 60, "type": "real"},
@@ -107,4 +91,7 @@ COLUMN_DEFINITIONS = {
         }
     }
 }
+CONTEXTS ={
+    "All": ["Assemblies", "Parts","Images", "Drawings", "Suppliers"],
+    "Some": ["Images" ],    }
 

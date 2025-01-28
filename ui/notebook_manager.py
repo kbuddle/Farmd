@@ -3,63 +3,48 @@ import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
-from core.database_utils import get_connection, execute_query, close_connection, execute_non_query, process_column_definitions
+from core.database_utils import get_connection, execute_query, close_connection, execute_non_query, get_processed_column_definitions, add_item, edit_item, clone_item, delete_item
 from ui.ui_helpers import create_buttons_frame
 from ui.shared_utils import sort_table, populate_table
+from core.query_builder import query_generator
 
+def create_datasheet_tab(notebook, context_name, context_data):
+    print(f"create_datasheet_tab called with context_name: {context_name}")
+    print(f"context_data: {context_data}")
 
-def create_datasheet_tab(
-    notebook,
-    add_item,
-    edit_item,
-    clone_item,
-    delete_item,
-    build_assy,
-    context=None,
-    fetch_query=None,
-    insert_query=None,
-    update_query=None,
-    delete_query=None,
-    max_width=1400
-):
-    """
-    Creates a reusable datasheet tab with buttons for operations.
+    # Validate inputs
+    if not isinstance(context_name, str):
+        raise ValueError(f"context_name must be a string, got {type(context_name).__name__}")
+    if not isinstance(context_data, dict):
+        raise ValueError(f"context_data must be a dictionary, got {type(context_data).__name__}")
+    if "columns" not in context_data:
+        raise KeyError(f"Missing 'columns' key in context_data: {context_data}")
 
-    Args:
-        notebook (ttk.Notebook): The parent notebook.
-        add_item (function): Function to handle 'Add' operations.
-        edit_item (function): Function to handle 'Edit' operations.
-        clone_item (function): Function to handle 'Clone' operations.
-        delete_item (function): Function to handle 'Delete' operations.
-        build_assy (function): Function to handle 'Build Assembly' operations (if applicable).
-        context (str, optional): Context of the tab (e.g., "Assemblies").
-        fetch_query (str, optional): SQL query to fetch data.
-        insert_query (str, optional): SQL query to insert data.
-        update_query (str, optional): SQL query to update data.
-        delete_query (str, optional): SQL query to delete data.
-        max_width (int, optional): Maximum width for the table.
+    # Extract and validate columns
+    columns = context_data["columns"]
+    if not isinstance(columns, dict):
+        raise ValueError(f"'columns' must be a dictionary, got {type(columns).__name__}. Value: {columns}")
+    print(f"Columns for context '{context_name}': {columns}")
 
-    Returns:
-        ttk.Frame: The created tab with its table and buttons.
-    """
+    # Generate queries
+    queries = query_generator(context_name)
+    print(f"Generated queries for context '{context_name}': {queries}")
 
-    if not context:
-        raise ValueError("Context must be provided to create a datasheet tab.")
+    # Process column definitions if needed (optional step)
+    processed_columns = get_processed_column_definitions(columns, exclude_hidden=True)
+    print(f"Processed columns for context '{context_name}': {processed_columns}")
 
-    # Retrieve column definitions as a dictionary
-    filtered_columns = process_column_definitions(context)
-    print("Filtered Columns:", filtered_columns)  # Debugging output
-
-    # Extract column names and widths from the dictionary
-    column_names = list(filtered_columns.keys())
-    column_widths = {col: details.get("width", 100) for col, details in filtered_columns.items()}
+    # Extract column names and details for Treeview
+    column_names = list(processed_columns.keys())
+    column_widths = {col: details.get("width", 100) for col, details in processed_columns.items()}
 
     # Initialize the tab
     tab = ttk.Frame(notebook)
-    notebook.add(tab, text=context)
+    notebook.add(tab, text=context_data["name"])
+    print(f"Tab '{context_data['name']}' successfully added to the notebook")
 
     # Create a frame for the table and scrollbars
-    table_frame = Frame(tab, width=max_width)
+    table_frame = Frame(tab, width=1400)
     table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     # Create the Treeview
@@ -68,24 +53,22 @@ def create_datasheet_tab(
     # Add scrollbars to the Treeview
     v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=treeview.yview)
     h_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=treeview.xview)
-
     treeview.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-
     v_scrollbar.pack(side="right", fill="y")
     h_scrollbar.pack(side="bottom", fill="x")
-
     treeview.pack(side="left", fill="both", expand=True)
 
     # Configure the Treeview headings and column widths
-    for col, details in filtered_columns.items():
-        treeview.heading(col, text=details.get("display_name", col), command=lambda c=col: sort_table(treeview, c, fetch_query))
+    for col, details in processed_columns.items():
+        print(f"Configuring Treeview column: {col}, Details: {details}")
+        treeview.heading(col, text=details.get("display_name", col), command=lambda c=col: sort_table(treeview, c, queries["fetch_query"]))
         treeview.column(col, width=details.get("width", 100), anchor="w", stretch=False)
 
     # Populate the table with data
     try:
-        populate_table(treeview, fetch_query)
+        populate_table(treeview, queries["fetch_query"])
     except Exception as e:
-        messagebox.showerror("Error", f"Failed to load data for {context}.")
+        messagebox.showerror("Error", f"Failed to load data for {context_name}.")
         if DEBUG:
             print(f"Error populating Treeview: {e}")
 
@@ -93,16 +76,29 @@ def create_datasheet_tab(
     buttons_frame = Frame(tab)
     buttons_frame.pack(fill="x", padx=10, pady=10)
 
-    # Create the buttons frame for CRUD operations
-    create_buttons_frame(
-        parent_frame=tab,
-        context=context,
-        add_item=lambda: add_item(context, treeview, insert_query, fetch_query),
-        edit_item=lambda: edit_item(context, treeview, fetch_query, update_query, column_names),
-        clone_item=lambda: clone_item(context, treeview, fetch_query, insert_query, column_names),
-        delete_item=lambda: delete_item(context, treeview, fetch_query, delete_query),
-        table=treeview,
-        build_assy=lambda assembly_id: build_assy(table_frame, assembly_id) if context == "Assemblies" else None,
-    )
+    # Add buttons for CRUD operations
+    ttk.Button(
+        buttons_frame,
+        text="Add",
+        command=lambda: add_item(context_name, treeview, queries["insert_query"], queries["fetch_query"])
+    ).pack(side="left", padx=5, pady=5)
+
+    ttk.Button(
+        buttons_frame,
+        text="Edit",
+        command=lambda: edit_item(context_name, treeview, queries["fetch_query"], queries["update_query"])
+    ).pack(side="left", padx=5, pady=5)
+
+    ttk.Button(
+        buttons_frame,
+        text="Clone",
+        command=lambda: clone_item(context_name, treeview, queries["fetch_query"], queries["insert_query"])
+    ).pack(side="left", padx=5, pady=5)
+
+    ttk.Button(
+        buttons_frame,
+        text="Delete",
+        command=lambda: delete_item(context_name, treeview, queries["fetch_query"], queries["delete_query"])
+    ).pack(side="left", padx=5, pady=5)
 
     return tab, treeview

@@ -2,53 +2,45 @@ from tkinter import Tk, ttk
 from ui.notebook_manager import create_datasheet_tab
 from core.query_builder import query_generator
 from ui.ui_helpers import placeholder_add, placeholder_build, placeholder_clone, placeholder_delete, placeholder_edit, center_window_vertically
+from core.database_utils import add_item, edit_item
+from forms.validation import validate_contexts
+from config.config_data import CONTEXTS, COLUMN_DEFINITIONS
 
-def main():
+def main(test_mode= False):
+    print("Main function started")
+
+    # Define context names (list of strings)
+    context_names = CONTEXTS["Some"] if test_mode else CONTEXTS["All"]
+    print(f"Contexts: {context_names}")
+
+    # Initialize Tkinter root and notebook
     root = Tk()
     root.title("FarmBot Management")
+    print("Tkinter window initialized")
 
-    # Define context for query generation
-    contexts = {
-        "Assemblies": {"title": "Manage Assemblies"}       
-    }
-    full_context = { 
-        "Assemblies": {"title": "Manage Assemblies"},
-        "Parts": {"title": "Manage Parts"},
-        "Suppliers": {"title": "Manage Suppliers"},
-        "Images": {"title": "Manage Images"},
-        "Drawings": {"title": "Manage Drawings"}}
-    contexts = contexts
-
-    # Uncomment the following line if you want to center the window
-    center_window_vertically(root, 1200, 600)
-
-    # Create the main notebook widget
     notebook = ttk.Notebook(root)
     notebook.pack(fill="both", expand=True)
+    print("Notebook widget created")
 
-    # Loop through the contexts and create a tab for each
-    for context, settings in contexts.items():
+    # Loop through the context names and fetch corresponding data
+    for context_name in context_names:
         try:
-            # Generate queries for the context
-            queries = query_generator(context)
+            # Retrieve column definitions for the current context
+            context_data = COLUMN_DEFINITIONS.get(context_name)
+            if not context_data:
+                raise ValueError(f"No context data found for '{context_name}'")
 
-            # Create a datasheet tab for the context
-            create_datasheet_tab(
-                notebook,
-                add_item=lambda: placeholder_add(context, None, queries["insert_query"], queries["fetch_query"]),
-                edit_item=lambda: placeholder_edit(context, None, queries["fetch_query"], queries["update_query"], None),
-                clone_item=lambda: placeholder_clone(context, None, queries["fetch_query"], queries["insert_query"], None),
-                delete_item=lambda: placeholder_delete(context, None, queries["fetch_query"], queries["delete_query"]),
-                build_assy=lambda assembly_id: placeholder_build(assembly_id) if context == "Assemblies" else None,
-                context=context,
-                fetch_query=queries["fetch_query"],
-                insert_query=queries["insert_query"],
-                update_query=queries["update_query"],
-                delete_query=queries["delete_query"],
-                max_width = 1400
-            )
+            # Add the 'name' key to context_data for tab display
+            context_data["name"] = context_name
+            print(f"Updated context data passed to create_database_tab '{context_data}")
+
+            # Pass the table name (context_name) and full context_data
+            create_datasheet_tab(notebook, context_name, context_data)
+            print(f"Successfully created tab for context: {context_name}")
+
+
         except Exception as e:
-            print(f"Failed to create tab for context '{context}': {e}")
+            print(f"Failed to create tab for context '{context_name}': {e}")
 
     # Run the Tkinter main event loop
     root.mainloop()
