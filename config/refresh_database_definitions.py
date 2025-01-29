@@ -1,11 +1,12 @@
 import sqlite3
-from config_data import COLUMN_DEFINITIONS
+from config_data import COLUMN_DEFINITIONS, DEBUG
 
 
 
 
 
-def refresh_column_definitions(table_name):
+
+def refresh_column_definitions(table_name, debug=False):
     """
     Refreshes column definitions by querying the database schema.
 
@@ -34,10 +35,11 @@ def refresh_column_definitions(table_name):
         return columns
     finally:
         connection.close()
+
 # Dynamically refresh column definitions for the Assemblies table
 COLUMN_DEFINITIONS["Assemblies"]["columns"] = refresh_column_definitions("Assemblies")
 
-print(f"DEBUG: Updated COLUMN_DEFINITIONS for Assemblies: {COLUMN_DEFINITIONS['Assemblies']['columns']}")
+
 
 
 # Dynamically refresh column definitions for the Assemblies table

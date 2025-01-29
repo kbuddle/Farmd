@@ -4,10 +4,12 @@ from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 
 from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
-from core.database_utils import get_connection, execute_query, close_connection, execute_non_query
-
+from core.database_transactions import DatabaseTransactionManager
 
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
+
+
+db_manager = DatabaseTransactionManager(DATABASE)
 
 # Dictionary to track the current sort direction for each column
 sort_directions = {}
@@ -33,8 +35,7 @@ def sort_table(treeview, column, fetch_query):
 
     try:
         # Execute the sorted query
-        connection = get_connection()
-        rows = execute_query(connection, sorted_query)
+        rows = db_manager.execute_query(sorted_query)
 
         # Clear current data in Treeview
         for item in treeview.get_children():
@@ -47,7 +48,6 @@ def sort_table(treeview, column, fetch_query):
         # Update the sort direction for the column
         sort_directions[column] = next_direction
 
-        close_connection(connection)
     except Exception as e:
         messagebox.showerror("Error", f"Failed to sort by {column}: {e}")
         if DEBUG:
@@ -61,11 +61,8 @@ def populate_table(treeview, fetch_query):
     :param fetch_query: SQL query to fetch data.
     """
     try:
-        connection = get_connection()
-        if not connection:
-            raise Exception("Database connection failed.")
-
-        rows = execute_query(connection, fetch_query)
+        # Call db_manager's execute_query directly without passing the connection
+        rows = db_manager.execute_query(fetch_query)
        
         # Clear existing rows in the Treeview
         for item in treeview.get_children():
@@ -74,8 +71,6 @@ def populate_table(treeview, fetch_query):
         # Insert rows into the Treeview
         for row in rows:
             treeview.insert("", "end", values=list(row.values()))
-
-        close_connection(connection)
        
     except Exception as e:
         messagebox.showerror("Error", f"Failed to populate data: {e}")

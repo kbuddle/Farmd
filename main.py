@@ -1,12 +1,21 @@
+import atexit
 from tkinter import Tk, ttk
 from ui.notebook_manager import create_datasheet_tab
 from core.query_builder import query_generator
 from ui.ui_helpers import placeholder_add, placeholder_build, placeholder_clone, placeholder_delete, placeholder_edit, center_window_vertically
-from core.database_utils import add_item, edit_item
 from forms.validation import validate_contexts
 from config.config_data import CONTEXTS, COLUMN_DEFINITIONS
+from core.database_transactions import db_manager  # Import db_manager for cleanup
 
-def main(test_mode= False):
+# Force cleanup of all connections on application exit
+def cleanup():
+    print("DEBUG: Application exiting. Force-closing all database connections...")
+    db_manager.connection_tracker.force_close_all()
+
+# Register the cleanup function with atexit
+atexit.register(cleanup)
+
+def main(test_mode=False):
     print("Main function started")
 
     # Define context names (list of strings)
@@ -32,12 +41,11 @@ def main(test_mode= False):
 
             # Add the 'name' key to context_data for tab display
             context_data["name"] = context_name
-            print(f"Updated context data passed to create_database_tab '{context_data}")
+            print(f"Updated context data passed to create_database_tab '{context_data}'")
 
             # Pass the table name (context_name) and full context_data
-            create_datasheet_tab(notebook, context_name, context_data)
+            create_datasheet_tab(notebook, context_name, context_data) 
             print(f"Successfully created tab for context: {context_name}")
-
 
         except Exception as e:
             print(f"Failed to create tab for context '{context_name}': {e}")

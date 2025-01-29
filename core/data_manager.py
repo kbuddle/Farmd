@@ -1,3 +1,9 @@
+from core.database_transactions import DatabaseTransactionManager
+
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
+
+db_manager = DatabaseTransactionManager(DATABASE)
+
 def save_data(context, data, is_add, column_definitions):
     """
     Saves data to the database for add or edit operations.
@@ -9,8 +15,7 @@ def save_data(context, data, is_add, column_definitions):
         column_definitions (dict): Column definitions for the table.
     """
     from core.query_builder import query_generator
-    from core.database_utils import execute_query  # Hypothetical database execution function
-
+    
     # Generate queries for the context
     queries = query_generator(context)
 
@@ -33,7 +38,7 @@ def save_data(context, data, is_add, column_definitions):
     print(f"With params: {params}")
 
     # Execute the query
-    execute_query(query, params)
+    db_manager.execute_query(query, params)
 
 
 from data_manager import save_data

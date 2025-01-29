@@ -1,7 +1,7 @@
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
 
 
-def query_generator(context_name):
+def query_generator(context_name, debug=False):
     """
     Generates SQL queries dynamically based on the context name and column definitions.
 
@@ -14,7 +14,8 @@ def query_generator(context_name):
     from core.database_utils import get_processed_column_definitions
     from config.config_data import COLUMN_DEFINITIONS
 
-    print(f"Query generator called for context: {context_name}")
+    if debug:
+        print(f"Query generator called for context: {context_name}")
 
     # Retrieve column definitions from configuration
     context_data = COLUMN_DEFINITIONS.get(context_name)
@@ -25,7 +26,8 @@ def query_generator(context_name):
 
     # Process the column definitions
     all_columns = get_processed_column_definitions(columns, exclude_hidden=True)
-    print(f"Processed column definitions for contextXXXX '{context_name}': {all_columns}")
+    if debug:
+        print(f"Processed column definitions for contextXXXX '{context_name}': {all_columns}")
 
     if not isinstance(all_columns, dict):
         raise TypeError(f"'columns' for context '{context_name}' must be a dictionary, got {type(all_columns)}")
@@ -36,7 +38,8 @@ def query_generator(context_name):
     )
     if not primary_key:
         raise ValueError(f"No primary key defined for context: {context_name}")
-    print(f"Primary key for context '{context_name}': {primary_key}")
+    if debug:
+        print(f"Primary key for context '{context_name}': {primary_key}")
 
     # Generate SQL queries
     def generate_fetch_query():
@@ -44,7 +47,8 @@ def query_generator(context_name):
         visible_columns = [col for col, details in columns.items() if not details.get("admin", False)]
         
         query = f"SELECT {', '.join(visible_columns)} FROM {context_name}"
-        print(f"DEBUG: Generated fetch query for {context_name}: {query}")
+        if debug:
+            print(f"DEBUG: Generated fetch query for {context_name}: {query}")
         return query
 
         
@@ -52,7 +56,7 @@ def query_generator(context_name):
         print(f"Generated fetch query for context '{context_name}': {query}")
         return query """
 
-    def generate_insert_query():
+    def generate_insert_query(debug=False):
         insertable_columns = [
             col for col, details in all_columns.items()
             if not details.get("admin", False) and col != primary_key
@@ -61,7 +65,8 @@ def query_generator(context_name):
             f"INSERT INTO {context_name} ({', '.join(insertable_columns)}) "
             f"VALUES ({', '.join(f':{col}' for col in insertable_columns)})"
         )
-        print(f"Generated insert query for context '{context_name}': {query}")
+        if debug:
+            print(f"Generated insert query for context '{context_name}': {query}")
         return query
 
     def generate_update_query(context_name, columns):
@@ -75,12 +80,14 @@ def query_generator(context_name):
         ]
         set_clause = ", ".join([f"{col} = :{col}" for col in updatable_columns])
         query = f"UPDATE {context_name} SET {set_clause} WHERE {primary_key} = :{primary_key}"
-        print(f"Generated update query for context '{context_name}': {query}")
+        if debug:
+            print(f"Generated update query for context '{context_name}': {query}")
         return query
 
     def generate_delete_query():
         query = f"DELETE FROM {context_name} WHERE {primary_key} = :{primary_key}"
-        print(f"Generated delete query for context '{context_name}': {query}")
+        if debug:
+            print(f"Generated delete query for context '{context_name}': {query}")
         return query
 
     return {

@@ -40,51 +40,40 @@ def validate_field(field_name, value, field_type, valid_values=None):
     return True
 
 
-def validate_form_data(columns, entry_widgets):
+def validate_form_data(context, form_data):
     """
-    Validates and extracts form data based on column definitions.
+    Validates form data before inserting or updating the database.
+    Ensures required fields are not empty and follow correct formats.
 
     Args:
-        columns (list): List of column definitions (dictionaries or strings).
-        entry_widgets (dict): Dictionary of entry widgets (Tkinter variables).
+        context (str): The database context (e.g., "Assemblies").
+        form_data (dict): The collected form data.
 
     Returns:
-        dict: Validated form data.
+        bool: True if validation passes, False otherwise.
 
     Raises:
-        ValueError: If validation fails for any field.
+        ValueError: If validation fails.
     """
-    form_data = {}
+    from config.config_data import COLUMN_DEFINITIONS
 
-    for column in columns:
-        # Handle both dictionary and string formats for columns
-        if isinstance(column, dict):
-            col_name = column["name"]
-            col_type = column.get("type", "text")
-        elif isinstance(column, str):
-            col_name = column
-            col_type = "text"  # Default to text if type is not specified
-        else:
-            raise ValueError(f"Invalid column format: {column}")
+    all_columns = COLUMN_DEFINITIONS.get(context, {}).get("columns", {})
+    if not all_columns:
+        raise ValueError(f"No column definitions found for context: {context}")
 
-        # Get the entry widget's value
-        entry_var = entry_widgets.get(col_name)
-        if not entry_var:
-            continue  # Skip columns without widgets
+    print(f"DEBUG: Validating form data for {context}: {form_data}")
 
-        value = entry_var.get()
+    missing_fields = []
+    for col_name, col_details in all_columns.items():
+        if col_details.get("required", False) and not form_data.get(col_name):
+            missing_fields.append(col_name)
 
-        # Perform validation based on type (e.g., required fields, numeric values)
-        if col_type in ["int", "float"] and value == "":
-            raise ValueError(f"{col_name} cannot be empty.")
-        if col_type == "int":
-            value = int(value)
-        elif col_type == "float":
-            value = float(value)
+    if missing_fields:
+        raise ValueError(f"Validation failed: Missing required fields - {missing_fields}")
 
-        form_data[col_name] = value
+    print(f"DEBUG: Validation successful for {context}")
+    return True
 
-    return form_data
 
 def validate_table_selection(table, context):
     """
@@ -105,20 +94,49 @@ def validate_table_selection(table, context):
         raise ValueError(f"Please select a {context} to proceed.")
     return table.item(selected_item, "values")
 
-def validate_foreign_keys(data, filtered_columns, connection):
+def validate_foreign_keys(data, filtered_columns, debug=False):
+    """
+    Validates foreign key constraints before inserting or updating data.
+
+    Args:
+        data (dict): The form data being validated.
+        filtered_columns (dict): Column definitions, including foreign key references.
+
+    Raises:
+        ValueError: If a foreign key constraint fails.
+    """
+    from core.database_transactions import db_manager  # Ensure db_manager is used
+
     for col_name, col_details in filtered_columns.items():
         if col_details.get("type") == "foreign_key":
             fk_table = col_details.get("references")  # Name of the referenced table
             fk_column = col_details.get("to", col_name)  # Referenced column (default to the same name)
             fk_value = data.get(col_name)
 
-            if fk_value:
-                fk_query = f"SELECT 1 FROM {fk_table} WHERE {fk_column} = ?"
-                result = connection.execute(fk_query, (fk_value,)).fetchone()
+            # Skip validation if no foreign key value is provided
+            if not fk_value:
+                continue
+
+            # Debugging: Log foreign key check
+            if debug:
+                print(f"DEBUG: Validating foreign key: {col_name} -> {fk_table}({fk_column}) with value {fk_value}")
+
+            # Construct query to check if foreign key exists
+            fk_query = f"SELECT 1 FROM {fk_table} WHERE {fk_column} = :fk_value"
+
+            try:
+                result = db_manager.execute_query(fk_query, {"fk_value": fk_value})
+
                 if not result:
                     raise ValueError(
                         f"The value '{fk_value}' for '{col_name}' does not exist in the referenced table '{fk_table}'."
                     )
+
+            except Exception as e:
+                print(f"DEBUG: Foreign key validation error: {e}")
+                raise ValueError(
+                    f"Foreign key validation failed for column '{col_name}' referencing '{fk_table}({fk_column})': {e}"
+                )
 
 def validate_contexts(contexts):
     """

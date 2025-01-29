@@ -67,73 +67,47 @@ def gather_form_data(context, entry_widgets):
 
     return form_data
 
-def build_form(frame, context, initial_values=None):
+def build_form(context, columns, initial_data=None, readonly_fields=None):
     """
-    Dynamically builds a form based on column definitions fetched from the configuration.
-
+    Builds a dynamic Tkinter form for data entry or editing.
+    
+    Supports:
+    - Initial values
+    - Readonly fields (e.g., primary keys)
+    
     Args:
-        frame (tk.Frame): The parent frame where form widgets will be added.
-        context (str): The context (e.g., "Parts", "Assemblies") to fetch column definitions from config.
-        initial_values (dict, optional): Initial values for the form fields.
+        context (str): The context of the form (e.g., "Assemblies").
+        columns (dict): Column definitions.
+        initial_data (dict, optional): Initial values for the form fields.
+        readonly_fields (list, optional): List of field names that should be readonly.
 
     Returns:
-        dict: A dictionary mapping column names to their respective Tkinter variable objects (e.g., StringVar, IntVar).
+        tuple: (Tkinter Toplevel window, dictionary of entry widgets)
     """
-    from config.config_data import COLUMN_DEFINITIONS
-    from tkinter import Tk, ttk, StringVar
-    from core.database_utils import get_processed_column_definitions
-
-    filtered_columns = get_processed_column_definitions(COLUMN_DEFINITIONS.get(context, {}).get("columns", {}))
-
-    # Ensure columns is a dict
-    if not isinstance(filtered_columns, dict):
-        raise TypeError(f"'columns' for context '{context}' must be a dictionary, got {type(filtered_columns)}")
-    
-    if not filtered_columns:
-        raise ValueError(f"No column definitions found for context '{context}'.")
-
+    form_window = tk.Toplevel()
+    form_window.title(f"{context} Entry Form")
     entry_widgets = {}
-    initial_values = initial_values or {}
 
-    row_counter = 0  # Separate counter for rows to handle skipped fields
-
-    for col_name, col_details in filtered_columns.items():
+    # Ensure initial_data is a dictionary to avoid NoneType errors
+    if initial_data is None:
+        initial_data = {}
         
-        # Ignore the primary key
-        if col_details.get("is_primary_key", False):
-            continue
+    for i, (col_name, col_details) in enumerate(columns.items()):
+        label = tk.Label(form_window, text=col_details.get("display_name", col_name))
+        label.grid(row=i, column=0, padx=5, pady=5, sticky="w")
 
-        col_display_name = col_details.get("display_name", col_name)
-        col_type = col_details.get("type", "text")
-        col_default = initial_values.get(col_name, col_details.get("default"))
+        entry_var = tk.StringVar(value=initial_data.get(col_name, ""))
+        entry = tk.Entry(form_window, textvariable=entry_var)
 
-        
-        # Add label for the field
-        label = tk.Label(frame, text=col_display_name)
-        label.grid(row=row_counter, column=0, sticky="w", padx=5, pady=5)
+        # Make fields readonly if specified
+        if readonly_fields and col_name in readonly_fields:
+            entry.config(state="readonly")
 
-        # Determine the widget type and create corresponding input
-        if col_type == "options":
-            options = col_details.get("options", [])
-            entry_var = tk.StringVar(value=col_default or (options[0] if options else ""))
-            entry = ttk.Combobox(frame, textvariable=entry_var, values=options, state="readonly")
-        elif col_type == "int":
-            entry_var = tk.StringVar(value=str(col_default) if col_default is not None else "")
-            entry = tk.Entry(frame, textvariable=entry_var)
-        elif col_type == "float":
-            entry_var = tk.StringVar(value=str(col_default) if col_default is not None else "")
-            entry = tk.Entry(frame, textvariable=entry_var, width=30)
-        else:  # Default to string type
-            entry_var = tk.StringVar(value=col_default or "")
-            entry = tk.Entry(frame, textvariable=entry_var, width=30)
-
-        # Add the input widget to the grid
-        entry.grid(row=row_counter, column=1, padx=5, pady=5)
+        entry.grid(row=i, column=1, padx=5, pady=5, sticky="ew")
         entry_widgets[col_name] = entry_var
 
-        row_counter += 1  # Increment row counter after each widget
+    return form_window, entry_widgets
 
-    return entry_widgets
 
 def populate_form_for_edit(data, column_definitions):
     """

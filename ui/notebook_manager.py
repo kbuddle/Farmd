@@ -3,14 +3,16 @@ import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
-from core.database_utils import get_connection, execute_query, close_connection, execute_non_query, get_processed_column_definitions, add_item, edit_item, clone_item, delete_item
+from core.database_utils import get_processed_column_definitions, add_item, edit_item, clone_item, delete_item
 from ui.ui_helpers import create_buttons_frame
 from ui.shared_utils import sort_table, populate_table
 from core.query_builder import query_generator
+from core.database_transactions import undo_last_action
 
-def create_datasheet_tab(notebook, context_name, context_data):
-    print(f"create_datasheet_tab called with context_name: {context_name}")
-    print(f"context_data: {context_data}")
+def create_datasheet_tab(notebook, context_name, context_data, debug=False):
+    if debug:
+        print(f"create_datasheet_tab called with context_name: {context_name}")
+        print(f"context_data: {context_data}")
 
     # Validate inputs
     if not isinstance(context_name, str):
@@ -101,4 +103,13 @@ def create_datasheet_tab(notebook, context_name, context_data):
         command=lambda: delete_item(context_name, treeview, queries["fetch_query"], queries["delete_query"])
     ).pack(side="left", padx=5, pady=5)
 
+    undo_button = ttk.Button(
+    buttons_frame,
+    text="Undo",
+    command=lambda: undo_last_action(treeview, queries["fetch_query"])
+    )
+    undo_button.pack(side="left", padx=5, pady=5)
+
+    
+    
     return tab, treeview
