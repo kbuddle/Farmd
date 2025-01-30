@@ -3,7 +3,9 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, DATABASE_PATH
+
+db_path = DATABASE_PATH
 
 class ConnectionTracker:
     def __init__(self):
@@ -185,7 +187,7 @@ class DatabaseTransactionManager:
                 print("DEBUG: No active transaction to rollback")
 
      
-db_manager = DatabaseTransactionManager(DATABASE)
+db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 def undo_last_action(table, fetch_query, debug=False):
     """

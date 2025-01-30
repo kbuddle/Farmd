@@ -1,8 +1,8 @@
 from core.database_transactions import DatabaseTransactionManager
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, DATABASE_PATH
 
-db_manager = DatabaseTransactionManager(DATABASE)
+db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 def save_data(context, data, is_add, column_definitions):
     """

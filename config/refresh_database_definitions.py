@@ -1,5 +1,6 @@
 import sqlite3
-from config_data import COLUMN_DEFINITIONS, DEBUG
+from config_data import COLUMN_DEFINITIONS, DEBUG, DATABASE, DATABASE_PATH
+
 
 
 
@@ -19,7 +20,7 @@ def refresh_column_definitions(table_name, debug=False):
     
     table_name="Assemblies"
     query = f"PRAGMA table_info({table_name});"
-    connection = sqlite3.connect("D:\FarmbotPythonV2\Farmbot.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     try:
         cursor = connection.cursor()
         cursor.execute(query)

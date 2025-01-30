@@ -1,3 +1,14 @@
+import sys
+import os
+
+# Ensure src/ is in Python’s path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Now we can safely import models
+from models.part import Part
+from models.assembly import Assembly
+
+
 import atexit
 from tkinter import Tk, ttk
 from ui.notebook_manager import create_datasheet_tab
@@ -7,9 +18,7 @@ from forms.validation import validate_contexts
 from config.config_data import CONTEXTS, COLUMN_DEFINITIONS, DEBUG
 from core.database_transactions import db_manager  # Import db_manager for cleanup
 
-# Import OOP Test Code
-from src.models.part import Part
-from src.models.assembly import Assembly
+
 
 
 # Force cleanup of all connections on application exit
@@ -53,7 +62,10 @@ def run_oop_test():
 
 def main(test_mode=True):
     #print("Main function started")
-
+    if test_mode:
+        print("\n🔍 Running OOP Test...\n")  # Debug message to confirm execution
+        run_oop_test()  # ✅ Force execution of the test
+        
     # Define context names (list of strings)
     context_names = CONTEXTS["Some"] if test_mode else CONTEXTS["All"]
     #print(f"Contexts: {context_names}")
@@ -90,4 +102,4 @@ def main(test_mode=True):
     root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    main(test_mode=DEBUG)

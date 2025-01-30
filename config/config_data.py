@@ -1,6 +1,22 @@
+import os
 DEBUG = True
 
-DATABASE = "D:\FarmbotPythonV2\Farmbot.db"
+# ✅ Get absolute path of `config_data.py`
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ✅ Move up **one level** to `src/`
+SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "src"))
+
+# ✅ Set database path inside `src/database/`
+DATABASE_PATH = os.path.join(SRC_DIR, "database", "Farmbot.db")
+BACKUP_FOLDER = os.path.join(SRC_DIR, "database", "backups")
+
+# Debugging output to confirm paths
+print(f"✅ BASE_DIR: {BASE_DIR}")
+print(f"✅ SRC_DIR: {SRC_DIR}")
+print(f"✅ DATABASE_PATH: {DATABASE_PATH}")
+print(f"✅ BACKUP_FOLDER: {BACKUP_FOLDER}")
+
 
 COLUMN_DEFINITIONS = {
     "Assemblies": {

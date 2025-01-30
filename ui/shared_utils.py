@@ -3,13 +3,13 @@ import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, DATABASE_PATH
 from core.database_transactions import DatabaseTransactionManager
 
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
 
 
-db_manager = DatabaseTransactionManager(DATABASE)
+db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 # Dictionary to track the current sort direction for each column
 sort_directions = {}

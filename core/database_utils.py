@@ -2,15 +2,15 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, VIEW_DEFINITIONS
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, VIEW_DEFINITIONS, DATABASE_PATH
 from core.database_transactions import DatabaseTransactionManager
 from ui.ui_helpers import center_window_vertically
 
 # Initialize db_manager once
-db_manager = DatabaseTransactionManager(DATABASE)
+db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 
-def get_connection(db_name=DATABASE):
+def get_connection(db_name=DATABASE_PATH):
     """
     Establish a connection to the SQLite database with dictionary-based rows.
     :param db_name: Name of the SQLite database file.
