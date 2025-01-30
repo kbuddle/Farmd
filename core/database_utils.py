@@ -2,7 +2,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS
+from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, VIEW_DEFINITIONS
 from core.database_transactions import DatabaseTransactionManager
 from ui.ui_helpers import center_window_vertically
 
@@ -27,8 +27,6 @@ def get_connection(db_name=DATABASE):
         return None
     except Exception as e:
         messagebox.showerror("Error", f"Unexpected error: {e}")
-
-
 
 def close_connection(connection):
     """
@@ -121,13 +119,6 @@ def add_item(context_name, table=None, insert_query=None, fetch_query=None, post
     from forms.validation import validate_form_data, validate_foreign_keys
    
 
-    # Create the form window
-    add_item_window = tk.Toplevel()
-    add_item_window.title(f"Add {context_name}")
-    center_window_vertically(add_item_window, 600, 750)
-    form_frame = tk.Frame(add_item_window)
-    form_frame.pack(pady=10, padx=10, fill="both", expand=True)
-
     # Fetch filtered column definitions
     columns = COLUMN_DEFINITIONS.get(context_name, {}).get("columns", {})
     if not columns:
@@ -144,10 +135,9 @@ def add_item(context_name, table=None, insert_query=None, fetch_query=None, post
     if debug:
         print(f"DEBUG: Editable columns for add_item: {editable_columns}")
 
-
     # Build form fields dynamically
     form_window, entry_widgets = build_form(context_name, editable_columns, initial_data={})
-
+  
     def save_item():
         """Handles form submission and saves the item to the database."""
         try:
@@ -315,7 +305,7 @@ def edit_item(context, table, fetch_query, update_query, debug=False):
 
             else:
                 print("DEBUG: User did not confirm edit, keeping transaction open for rollback.")  
-                
+
             #Fetch updated data and refresh the table
             if debug:
                 print(f"DEBUG: Fetching updated data for {context}.")
@@ -341,7 +331,6 @@ def edit_item(context, table, fetch_query, update_query, debug=False):
     # Add Cancel button with grid layout
     cancel_button = tk.Button(form_window, text="Cancel", command=form_window.destroy, bg="red", fg="white")
     cancel_button.grid(row=len(editable_columns) + 1, column=1, padx=5, pady=5, sticky="e")
-
     
 def insert_item_in_db(context, columns, form_data, insert_query, debug=False):
     """
@@ -384,8 +373,6 @@ def insert_item_in_db(context, columns, form_data, insert_query, debug=False):
         if debug:
             print(f"DEBUG: Error inserting item: {e}")
         raise
-
-
 
 def clone_item(context_name, table, fetch_query, insert_query, debug=False):
     """
@@ -563,8 +550,6 @@ def prepare_update_params(columns, form_data):
     print(f"DEBUG: Prepared update parameters: {params}")
     return params
 
-
-
 def connection_debugger(func):
     
     import functools
@@ -577,4 +562,42 @@ def connection_debugger(func):
         return result
     return wrapper
 
+def get_assembly_image(assembly_id):
+    """
+    Retrieves the image path for a given assembly using db_manager.
 
+    Args:
+        assembly_id (int): The ID of the assembly.
+
+    Returns:
+        str: File path of the assigned image, or None if no image is linked.
+    """
+    if not assembly_id:
+        return None  # Ensure a valid ID is provided
+
+    query = """
+    SELECT i.ImageFileName
+    FROM Assemblies a
+    JOIN Images i ON a.AssemImageID = i.ImageID
+    WHERE a.AssemblyID = ?
+    """
+    
+    result = db_manager.execute_query(query, (assembly_id,))
+
+    return result["ImageFileName"] if result else None  # Return file path or None
+
+def get_entity_details(entity_id, entity_type):
+    """
+    Fetches details of an entity (Assembly, Part, or Supplier) from the database.
+
+    Args:
+        entity_id (int): The ID of the selected entity.
+        entity_type (str): The table name where the entity is stored.
+
+    Returns:
+        dict: Dictionary containing entity details.
+    """
+    query = f"SELECT * FROM {entity_type} WHERE ID = ?"
+    result = db_manager.execute_query(query, (entity_id,))
+
+    return result[0] if result else {}

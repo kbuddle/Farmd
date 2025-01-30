@@ -54,12 +54,14 @@ def sort_table(treeview, column, fetch_query):
             print(f"Error in sort_table: {e}")
 
 
-def populate_table(treeview, fetch_query): 
+def populate_table(treeview, fetch_query, debug=DEBUG): 
     """
     Populates the Treeview with data from the database.
     :param treeview: The Treeview widget.
     :param fetch_query: SQL query to fetch data.
     """
+    if debug:
+        print(f" here is passed treeview, {treeview}, and here is fetch query {fetch_query}")
     try:
         # Call db_manager's execute_query directly without passing the connection
         rows = db_manager.execute_query(fetch_query)

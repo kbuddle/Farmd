@@ -76,7 +76,7 @@ class DatabaseTransactionManager:
             if debug:
                 print("DEBUG: Transaction committed.")
 
-    def execute_query(self, query, params=None, transactional=True, debug=DEBUG):
+    def execute_query(self, query, params=None, transactional=True, debug=False):
         """
         Execute a query on the SQLite database and return results as dictionaries.
         """
@@ -124,7 +124,7 @@ class DatabaseTransactionManager:
             print(f"DEBUG: Closing connection in execute_query")
             #self.close()  # Ensure connection is closed
 
-    def execute_non_query(self, query, params=None, transactional=True, commit=False, debug=DEBUG):
+    def execute_non_query(self, query, params=None, transactional=True, commit=False, debug=False):
         """
         Execute a non-query SQL statement (e.g., INSERT, UPDATE, DELETE).
         """
@@ -170,7 +170,7 @@ class DatabaseTransactionManager:
 
 
 
-    def rollback_transaction(self, debug=DEBUG):
+    def rollback_transaction(self, debug=False):
         """
         Rollback the current transaction, undoing all changes made since it started.
         """
@@ -187,7 +187,7 @@ class DatabaseTransactionManager:
      
 db_manager = DatabaseTransactionManager(DATABASE)
 
-def undo_last_action(table, fetch_query, debug=DEBUG):
+def undo_last_action(table, fetch_query, debug=False):
     """
     Undo the last database transaction by rolling it back and refreshing the table.
     """

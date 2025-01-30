@@ -84,8 +84,12 @@ def build_form(context, columns, initial_data=None, readonly_fields=None):
     Returns:
         tuple: (Tkinter Toplevel window, dictionary of entry widgets)
     """
+
+    from ui.ui_helpers import center_window_vertically
+    
     form_window = tk.Toplevel()
     form_window.title(f"{context} Entry Form")
+    center_window_vertically(form_window, 600, 750)
     entry_widgets = {}
 
     # Ensure initial_data is a dictionary to avoid NoneType errors

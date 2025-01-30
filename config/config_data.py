@@ -70,7 +70,7 @@ COLUMN_DEFINITIONS = {
     "Images": {
         "columns": {
             "ImageID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True},
-            "ImageName": {"display_name": "Name", "width": 200, "type": "string"},
+            "ImageFileName": {"display_name": "File Name", "width": 200, "type": "string"},
             "ImageData": {"display_name": "BlobData", "width": 150, "type": "blob", "admin": True}
         }
     },
@@ -93,5 +93,19 @@ COLUMN_DEFINITIONS = {
 }
 CONTEXTS ={
     "All": ["Assemblies", "Parts","Images", "Drawings", "Suppliers"],
-    "Some": ["Images" ],    }
+    "Some": ["Assemblies"],    }
 
+VIEW_DEFINITIONS = {
+    "card_view": {
+        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours"],
+        "order": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours"]
+    },
+    "datasheet_view": {
+        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours", "Cost", "Weight"],
+        "order": ["AssemblyName", "ProcurementType", "Quantity", "Cost", "Weight", "TotalHours"]
+    },
+    "detailed_view": {
+        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours", "Cost", "Weight", "Manufacturer"],
+        "order": ["AssemblyName", "Manufacturer", "ProcurementType", "Quantity", "Cost", "Weight", "TotalHours"]
+    }
+}
