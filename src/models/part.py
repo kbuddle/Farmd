@@ -1,4 +1,4 @@
-from models.item import Item
+from src.models.item import Item
 
 class Part(Item):
     def __init__(self, part_id, name, procurement_type="Purchase"):

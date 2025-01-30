@@ -1,4 +1,4 @@
-from models.item import Item
+from src.models.item import Item
 class Assembly(Item):
     def __init__(self, assembly_id, name, procurement_type):
         """

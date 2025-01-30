@@ -3,7 +3,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, DATABASE_PATH
+from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 
 db_path = DATABASE_PATH
 

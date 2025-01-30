@@ -1,5 +1,5 @@
 from core.database_transactions import DatabaseTransactionManager
-from config.config_data import DATABASE, DATABASE_PATH
+from config.config_data import DATABASE_PATH
 
 db_manager = DatabaseTransactionManager(db_path=DATABASE_PATH) 
 

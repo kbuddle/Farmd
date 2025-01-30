@@ -2,7 +2,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, VIEW_DEFINITIONS, DATABASE_PATH
+from config.config_data import DEBUG, COLUMN_DEFINITIONS, VIEW_DEFINITIONS, DATABASE_PATH
 from core.database_transactions import DatabaseTransactionManager
 from ui.ui_helpers import center_window_vertically
 

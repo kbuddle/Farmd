@@ -1,6 +1,6 @@
 from core.database_transactions import DatabaseTransactionManager
 
-from config.config_data import DEBUG, DATABASE, COLUMN_DEFINITIONS, DATABASE_PATH
+from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 
 db_manager = DatabaseTransactionManager(DATABASE_PATH)
 

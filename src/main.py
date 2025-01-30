@@ -5,8 +5,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Now we can safely import models
-from models.part import Part
-from models.assembly import Assembly
+from src.models.part import Part
+from src.models.assembly import Assembly
 
 
 import atexit
@@ -15,7 +15,7 @@ from ui.notebook_manager import create_datasheet_tab
 from core.query_builder import query_generator
 from ui.ui_helpers import placeholder_add, placeholder_build, placeholder_clone, placeholder_delete, placeholder_edit, center_window_vertically
 from forms.validation import validate_contexts
-from config.config_data import CONTEXTS, COLUMN_DEFINITIONS, DEBUG
+from config.config_data import CONTEXTS, COLUMN_DEFINITIONS, DEBUG, DATABASE_PATH
 from core.database_transactions import db_manager  # Import db_manager for cleanup
 
 
@@ -65,7 +65,7 @@ def main(test_mode=True):
     if test_mode:
         print("\n🔍 Running OOP Test...\n")  # Debug message to confirm execution
         run_oop_test()  # ✅ Force execution of the test
-        
+
     # Define context names (list of strings)
     context_names = CONTEXTS["Some"] if test_mode else CONTEXTS["All"]
     #print(f"Contexts: {context_names}")

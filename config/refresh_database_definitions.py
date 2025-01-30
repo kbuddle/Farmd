@@ -1,6 +1,5 @@
 import sqlite3
-from config_data import COLUMN_DEFINITIONS, DEBUG, DATABASE, DATABASE_PATH
-
+from config_data import COLUMN_DEFINITIONS, DEBUG, DATABASE_PATH
 
 
 
