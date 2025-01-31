@@ -8,6 +8,8 @@ from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 db_path = DATABASE_PATH
 debug = False,
 
+
+
 class ConnectionTracker:
     
     def __init__(self):
@@ -43,7 +45,7 @@ class ConnectionTracker:
 class DatabaseTransactionManager:
     _instance = None  # Singleton instance
     connection_tracker = ConnectionTracker()
-
+    
     def __new__(cls, db_path):
         if cls._instance is None:
             cls._instance = super(DatabaseTransactionManager, cls).__new__(cls)
@@ -89,7 +91,7 @@ class DatabaseTransactionManager:
             if debug:
                 print("DEBUG: Transaction committed.")
 
-    def execute_query(self, query, params=None, transactional=True, debug=False):
+    def execute_query(self, query, params=None, transactional=True, debug=DEBUG):
         """
         Execute a query on the SQLite database and return results as dictionaries.
         """
@@ -182,8 +184,6 @@ class DatabaseTransactionManager:
                     print(f"DEBUG: Transaction rolled back due to error. Unexpected error: {e} ")
             raise e
 
-
-
     def rollback_transaction(self, debug=False):
         """
         Rollback the current transaction, undoing all changes made since it started.
@@ -197,9 +197,6 @@ class DatabaseTransactionManager:
                 print("DEBUG: Transaction rollback succesfull.")
             else:
                 print("DEBUG: No active transaction to rollback")
-
-     
-db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 def undo_last_action(table, fetch_query, debug=False):
     """
@@ -234,4 +231,4 @@ def undo_last_action(table, fetch_query, debug=False):
         print(f"DEBUG: Undo failed: {e}")
         messagebox.showerror("Undo Failed", f"Could not undo the last action: {e}")
 
-
+db_manager= DatabaseTransactionManager(DATABASE_PATH)

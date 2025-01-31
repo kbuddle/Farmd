@@ -6,7 +6,7 @@ from core.query_builder import query_generator
 
 
 def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item, delete_item, table, build_assy=None):
-    from core.database_utils import add_item, edit_item
+    from src.database.database_utils import add_item, edit_item
     """
     Creates a frame with buttons for CRUD operations and other context-specific actions.
     :param parent_frame: The parent frame to place the buttons in.
@@ -134,4 +134,22 @@ def hide_field_in_ui(field_name, value, form_widgets):
         widget.insert(0, value)  # Populate the value
         widget.config(state="readonly")  # Make it readonly
         widget.grid_remove()  # Optionally hide it entirely
+
+def get_selected_assembly(table):
+    """
+    Retrieves the selected AssemblyID from the table.
+    
+    Args:
+        table (ttk.Treeview): The assemblies table widget.
+
+    Returns:
+        int or None: Selected AssemblyID or None if nothing is selected.
+    """
+    selected_item = table.selection()
+    if not selected_item:
+        print("❌ DEBUG: No assembly selected.")
+        return None
+
+    assembly_id = table.item(selected_item, "values")[0]
+    return int(assembly_id) if assembly_id.isdigit() else None
 

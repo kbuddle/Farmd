@@ -1,4 +1,4 @@
-from core.database_transactions import DatabaseTransactionManager
+from src.core.database_transactions import DatabaseTransactionManager
 
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 

@@ -2,12 +2,12 @@ import os
 from tkinter import Frame, Label, Button, ttk, messagebox
 from PIL import Image, ImageTk
 from config.config_data import VIEW_DEFINITIONS, DEBUG
-from core.database_utils import get_assembly_image  # Function to retrieve image path
-from core.database_utils import get_processed_column_definitions
-from ui.shared_utils import populate_table, sort_table
+from src.database.database_utils import get_assembly_image  # Function to retrieve image path
+from src.database.database_utils import get_processed_column_definitions
+from src.ui.shared_utils import populate_table, sort_table
 
 
-def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_callback=None):
+def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_callback=None, debug=DEBUG):
     """
     Creates a card-style frame dynamically based on VIEW_DEFINITIONS.
 
@@ -79,8 +79,8 @@ def create_datasheet_view(parent_widget, context_name, context_data, parent_fram
     if debug:
         print(f"Creating datasheet for context: {context_name}")
 
-    table_frame = Frame(parent_widget, width=1400)
-    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    table_frame = Frame(parent_widget, width=1000, height =600)
+    table_frame.pack(fill="both", expand=False, padx=10, pady=10)
 
     # Extract columns
     processed_columns = get_processed_column_definitions(context_data["columns"], exclude_hidden=True)
@@ -95,7 +95,7 @@ def create_datasheet_view(parent_widget, context_name, context_data, parent_fram
     treeview.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
     v_scrollbar.pack(side="right", fill="y")
     h_scrollbar.pack(side="bottom", fill="x")
-    treeview.pack(side="left", fill="both", expand=True)
+    treeview.pack(side="left", fill="both", expand=False)
 
     # Configure columns
     for col, details in processed_columns.items():
@@ -137,7 +137,7 @@ def create_available_parts_view(parent_frame, assembly_id, on_select_callback=No
         ttk.Treeview: The created datatable view.
     """
     from tkinter import ttk, Frame, Entry, Label, StringVar
-    from ui.shared_utils import sort_table
+    from src.ui.shared_utils import sort_table
     from core.database_queries import fetch_available_items
 
 
@@ -195,3 +195,4 @@ def create_available_parts_view(parent_frame, assembly_id, on_select_callback=No
     treeview.bind("<<TreeviewSelect>>", on_row_select)
 
     return treeview
+

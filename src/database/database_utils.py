@@ -3,9 +3,9 @@ import tkinter as tk
 from tkinter import messagebox, StringVar
 
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, VIEW_DEFINITIONS, DATABASE_PATH
-from core.database_transactions import DatabaseTransactionManager
-from ui.ui_helpers import center_window_vertically
-
+from src.core.database_transactions import DatabaseTransactionManager
+from src.ui.ui_helpers import center_window_vertically
+from src.forms import data_entry_form
 # Initialize db_manager once
 db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
@@ -114,9 +114,9 @@ def add_item(context_name, table=None, insert_query=None, fetch_query=None, post
         fetch_query (str, optional): SQL query to fetch updated data. If None, skip fetching.
         post_insert_callback (callable, optional): Function to execute after insertion (e.g., return to build_assembly).
     """
-    from ui.shared_utils import populate_table
-    from forms.data_entry_form import build_form
-    from forms.validation import validate_form_data, validate_foreign_keys
+    from src.ui.shared_utils import populate_table
+    from src.forms.data_entry_form import build_form
+    from src.forms.validation import validate_form_data, validate_foreign_keys
    
 
     # Fetch filtered column definitions
@@ -246,9 +246,9 @@ def edit_item(context, table, fetch_query, update_query, debug=False):
     import tkinter as tk
     from tkinter import ttk, messagebox, Button
     from config.config_data import COLUMN_DEFINITIONS
-    from core.database_transactions import db_manager
-    from forms.validation import validate_form_data
-    from forms.data_entry_form import build_form
+    from src.core.database_transactions import db_manager
+    from src.forms.validation import validate_form_data
+    from src.forms.data_entry_form import build_form
 
     
     # Fetch all column definitions
@@ -348,9 +348,9 @@ def insert_item_in_db(context, columns, form_data, insert_query, debug=False):
     import tkinter as tk
     from tkinter import messagebox
     from config.config_data import COLUMN_DEFINITIONS
-    from core.database_transactions import db_manager
-    from forms.data_entry_form import build_form
-    from forms.validation import validate_form_data
+    from src.core.database_transactions import db_manager
+    from src.forms.data_entry_form import build_form
+    from src. forms.validation import validate_form_data
     try:
         # Prepare parameters for the INSERT query (excluding primary key)
         params = {
@@ -384,8 +384,8 @@ def clone_item(context_name, table, fetch_query, insert_query, debug=False):
         fetch_query (str): SQL query to fetch updated data.
         insert_query (str): SQL INSERT query for cloning the item.
     """
-    from forms.data_entry_form import build_form
-    from forms.validation import validate_form_data
+    from src.forms.data_entry_form import build_form
+    from src.forms.validation import validate_form_data
     # Fetch all column definitions
     
     all_columns = COLUMN_DEFINITIONS.get(context_name, {}).get("columns", {})
@@ -471,10 +471,10 @@ def delete_item(context, table, fetch_query, delete_query, debug=False):
         fetch_query (str): SQL query to fetch updated data.
         delete_query (str): SQL query to delete the item.
     """
-    from forms.validation import validate_table_selection
-    from ui.shared_utils import populate_table
-    from core.database_transactions import db_manager
-    from core.config_utils import get_primary_key
+    from src.forms.validation import validate_table_selection
+    from src.ui.shared_utils import populate_table
+    from src.core.database_transactions import db_manager
+    from src.core.config_utils import get_primary_key
 
     primary_key = get_primary_key(context)
     if not primary_key:

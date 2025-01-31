@@ -2,7 +2,7 @@ import unittest
 import os
 import tkinter as tk
 from ui.ui_components import create_card_frame  # ✅ Ensure correct import path
-from core.database_utils import get_assembly_image  # ✅ Ensure function exists
+from src.database.database_utils import get_assembly_image  # ✅ Ensure function exists
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, VIEW_DEFINITIONS
 
 class TestCardFrame(unittest.TestCase):

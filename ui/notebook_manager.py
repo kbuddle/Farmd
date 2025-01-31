@@ -3,18 +3,18 @@ import tkinter as tk
 from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
-from core.database_utils import get_processed_column_definitions, add_item, edit_item, clone_item, delete_item
-from ui.ui_helpers import create_buttons_frame
-from ui.shared_utils import sort_table, populate_table
+from src.database.database_utils import get_processed_column_definitions, add_item, edit_item, clone_item, delete_item
+from src.ui.ui_helpers import create_buttons_frame
+from src.ui.shared_utils import sort_table, populate_table
 from core.query_builder import query_generator
-from core.database_transactions import undo_last_action
-from ui.ui_helpers import center_window_vertically
+from src.core.database_transactions import undo_last_action
+from src.ui.ui_helpers import center_window_vertically
 
 from ui.ui_components import create_datasheet_view  # ✅ Import the new function
 from ui.ui_events import on_datasheet_selection
 from ui.ui_components import create_available_parts_view
 
-def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None, debug=False):
+def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None, debug=DEBUG):
     """
     Creates a notebook tab for a datasheet and configures buttons, while delegating table creation
     to `create_datasheet_view`.

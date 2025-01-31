@@ -1,6 +1,6 @@
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
-from core.database_transactions import db_manager
+from src.core.database_transactions import db_manager
 
 
 class Part(Item):

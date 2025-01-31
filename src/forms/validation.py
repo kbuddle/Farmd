@@ -115,7 +115,7 @@ def validate_foreign_keys(data, filtered_columns, debug=False):
     Raises:
         ValueError: If a foreign key constraint fails.
     """
-    from core.database_transactions import db_manager  # Ensure db_manager is used
+    from src.core.database_transactions import db_manager  # Ensure db_manager is used
 
     for col_name, col_details in filtered_columns.items():
         if col_details.get("type") == "foreign_key":

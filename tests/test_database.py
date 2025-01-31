@@ -8,7 +8,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
 # Now, import your module
-from core.database_transactions import db_manager
+from src.core.database_transactions import db_manager
 
 def test_database_operations():
     print("===== Running Database Tests =====")

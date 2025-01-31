@@ -1,104 +1,62 @@
 import sys
 import os
-
+import atexit
+from tkinter import Tk, Frame
+from src.models.part import Part
+from src.models.assembly import Assembly
+from src.ui.ui_components import create_assemblies_table
+from src.ui.ui_events import on_assembly_selection
+from config.config_data import DEBUG, DATABASE_PATH
+from src.core.database_transactions import DatabaseTransactionManager  # Import db_manager for cleanup
+from src.core.database_transactions import db_manager
 # Ensure src/ is in Python’s path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Now we can safely import models
-from src.models.part import Part
-from src.models.assembly import Assembly
-
-import atexit
-from tkinter import Tk, ttk
-from ui.notebook_manager import create_datasheet_tab
-from core.query_builder import query_generator
-from ui.ui_helpers import placeholder_add, placeholder_build, placeholder_clone, placeholder_delete, placeholder_edit, center_window_vertically
-from forms.validation import validate_contexts
-from config.config_data import CONTEXTS, COLUMN_DEFINITIONS, DEBUG, DATABASE_PATH
-from core.database_transactions import db_manager  # Import db_manager for cleanup
-
 # Force cleanup of all connections on application exit
 def cleanup():
-    #print("DEBUG: Application exiting. Force-closing all database connections...")
     db_manager.connection_tracker.force_close_all()
 
-# Register the cleanup function with atexit
 atexit.register(cleanup)
 
-def run_oop_test():
-    """Runs a basic test for the OOP refactor."""
-    print("\n🛠️ Running OOP Test...")
-
-    # Step 1: Create Parts
-    bolt = Part(1, "Bolt", "Purchase")
-    frame = Part(2, "Frame", "Make")
-
-    # Save parts to the database
-    bolt.save_to_db()
-    frame.save_to_db()
-
-    # Step 2: Create an Assembly
-    robot_arm = Assembly(1001, "Robot Arm", "Make")
-    robot_arm.save_to_db()  # Save assembly before adding parts
-
-    # Step 3: Assign Parts to the Assembly
-    robot_arm.add_part(bolt, 10)  # ✅ First Assignment
-    robot_arm.add_part(bolt, 5)   # ✅ Should update quantity instead of inserting duplicate
-    robot_arm.add_part(frame, 1)  # ✅ Add another part
-
-    # Step 4: Output Assigned Parts
-    print("\n🛠️ Assembly Parts List:")
-    print(robot_arm.list_parts())  # Expected Output: [('Bolt', 15), ('Frame', 1)]
-
-    # Step 5: Check Dictionary Conversion (for backward compatibility)
-    print("\n🔄 Dictionary Representation:")
-    print(robot_arm.to_dict())  # Expected dictionary format
-
-    # Step 6: Test Procurement Validation (Should Raise an Error)
-    try:
-        purchased_assembly = Assembly(2002, "Pre-Built Kit", "Purchase")
-        purchased_assembly.add_part(frame, 2)  # Trying to add a 'Make' part to a 'Purchase' assembly
-    except ValueError as e:
-        print("\n🚨 Error Caught as Expected:")
-        print(e)
-
-def main(test_mode=True):
+def main(test_mode=False):
     """Main function controlling UI and test execution."""
     
     if test_mode:
-        print("\n🔍 Running OOP Test...\n")  # Debug message to confirm execution
-        run_oop_test()  # ✅ Force execution of the test
+        print("\n🔍 Running OOP Test...\n")
 
-    # Define context names (list of strings)
-    context_names = CONTEXTS["Some"] if test_mode else CONTEXTS["All"]
-
-    # Initialize Tkinter root and notebook
+    # Initialize Tkinter root window
     root = Tk()
     root.title("FarmBot Management")
+    root.geometry("1000x600")
+    root.resizable(True, True)
 
-    notebook = ttk.Notebook(root)
-    notebook.pack(fill="both", expand=True)
+    # ✅ Main container for everything
+    main_container = Frame(root, name="main_container")
+    main_container.pack(fill="both", expand=True)
 
-    # Loop through the context names and fetch corresponding data
-    for context_name in context_names:
-        try:
-            # Retrieve column definitions for the current context
-            context_data = COLUMN_DEFINITIONS.get(context_name)
-            if not context_data:
-                raise ValueError(f"No context data found for '{context_name}'")
+    # ✅ Frame for assemblies list and card view (upper section)
+    assemblies_container = Frame(main_container, name="assemblies_container")
+    assemblies_container.pack(fill="x", expand=True)
 
-            # Add the 'name' key to context_data for tab display
-            context_data["name"] = context_name
+    # ✅ Frame for the card view (detailed assembly info)
+    card_frame = Frame(assemblies_container, name="card_frame", relief="sunken", borderwidth=2)
+    card_frame.pack(fill="x", expand=True, padx=5, pady=5)
 
-            # Pass the table name (context_name) and full context_data
-            create_datasheet_tab(notebook, context_name, context_data) 
-            #print(f"Successfully created tab for context: {context_name}")
+    # ✅ Frame for assigned parts (lower section)
+    parts_container = Frame(main_container, name="parts_container", relief="ridge", borderwidth=2)
+    parts_container.pack(fill="both", expand=True)
 
-        except Exception as e:
-            print(f"Failed to create tab for context '{context_name}': {e}")
+    # ✅ Create Assemblies table inside the assemblies container
+    assemblies_frame, assemblies_table = create_assemblies_table(assemblies_container)
 
-    # Run the Tkinter main event loop
+    # ✅ Bind selection event to update both card view and assigned parts
+    assemblies_table.bind("<<TreeviewSelect>>", lambda event: on_assembly_selection(event, assemblies_table, card_frame, parts_container))
+
+    print("✅ DEBUG: UI frames initialized and selection event bound.")
+
+    # Start the UI loop
     root.mainloop()
 
 if __name__ == "__main__":
     main(test_mode=DEBUG)
+

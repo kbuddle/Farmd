@@ -11,7 +11,7 @@ def query_generator(context_name, debug=False):
     Returns:
         dict: A dictionary containing SQL queries for fetch, insert, update, and delete operations.
     """
-    from core.database_utils import get_processed_column_definitions
+    from src.database.database_utils import get_processed_column_definitions
     from config.config_data import COLUMN_DEFINITIONS
 
     if debug:

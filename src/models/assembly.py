@@ -1,6 +1,6 @@
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
-from core.database_transactions import db_manager  # ✅ Use transaction manager instance
+from src.core.database_transactions import db_manager  # ✅ Use transaction manager instance
 from forms.validation import validate_field  # ✅ Import validation function
 
 VALID_PROCUREMENT_TYPES = {"Purchase", "Make", "Hybrid"}
@@ -54,7 +54,7 @@ class Assembly(Item):
             SELECT DISTINCT p.ProcurementType
             FROM Assemblies_Parts ap
             JOIN Parts p ON ap.PartID = p.PartID
-            WHERE ap.AssemblyID = ?
+            WHERE ap.ID = ?
         """
         result = db_manager.execute_query(query, (self.item_id,))
 
@@ -102,27 +102,30 @@ class Assembly(Item):
         )
 
         # ✅ Debugging Output: Log before inserting into the database
-        print(f"DEBUG: Inserting into Assemblies_Parts - Part: {part.name}, ProcurementType: {part.procurement_type}, AssemblyID: {self.item_id}, PartID: {part.item_id}, Quantity: {quantity}, EntityType: {entity_type}")
+        print(f"DEBUG: Inserting into Assemblies_Parts - Part: {part.name}, ProcurementType: {part.procurement_type}, ID: {self.item_id}, PartID: {part.item_id}, Quantity: {quantity}, EntityType: {entity_type}")
 
-        check_query = "SELECT ID FROM Assemblies_Parts WHERE AssemblyID = ? AND PartID = ?"
+        check_query = "SELECT ID FROM Assemblies_Parts WHERE ParentAssemblyID = ? AND PartID = ?"
         result = db_manager.execute_query(check_query, (self.item_id, part.item_id))
 
         if result:
             update_query = """
                 UPDATE Assemblies_Parts 
-                SET ProcurementType = ?, AssemblyID = ?, PartID = ?, Quantity = ?, EntityType = ?
-                WHERE ID = ?
+                SET Quantity = Quantity + CAST(? as NUMERIC)
+                WHERE ParentAssemblyID = ? AND PartID = ?
             """
-            db_manager.execute_non_query(update_query, (part.procurement_type, self.item_id, part.item_id, quantity, entity_type, result[0]["ID"]), commit=True)
+            print(f"DEBUG: Running UPDATE query: {update_query} with params ({quantity}, {self.item_id}, {part.item_id})")
+            db_manager.execute_non_query(update_query, (quantity, self.item_id, part.item_id), commit=True)
+            print(f"✅ SUCCESS: Updated Quantity for Part {part.item_id} in Assembly {self.item_id}")
+
         else:
             insert_query = """
-                INSERT INTO Assemblies_Parts (ProcurementType, AssemblyID, PartID, Quantity, EntityType) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO Assemblies_Parts (ProcurementType, ParentAssemblyID, ChildAssemblyID, PartID, Quantity, EntityType)
+                VALUES (?, ?, ?, ?, ?, ?)
             """
-            db_manager.execute_non_query(insert_query, (part.procurement_type, self.item_id, part.item_id, quantity, entity_type), commit=True)
-
-        # ✅ Update procurement type after adding a part
-        self.update_procurement_type()
+            params = (part.procurement_type, self.item_id, self.item_id, part.item_id, quantity, entity_type)
+            print(f"DEBUG: Running INSERT query: {insert_query} with params {params}")
+            db_manager.execute_non_query(insert_query, params, commit=True)
+            print(f"✅ SUCCESS: Added Part {part.item_id} to Assembly {self.item_id}")
 
     def list_parts(self):
         """Fetches all parts assigned to this assembly from the database."""
@@ -130,7 +133,7 @@ class Assembly(Item):
             SELECT p.PartName, ap.Quantity
             FROM Assemblies_Parts ap
             JOIN Parts p ON ap.PartID = p.PartID
-            WHERE ap.AssemblyID = ?
+            WHERE ap.ID = ?
         """
         result = db_manager.execute_query(query, (self.item_id,))
 
@@ -138,3 +141,22 @@ class Assembly(Item):
             return []  # Return empty list if no parts found
 
         return [(row["PartName"], row["Quantity"]) for row in result]
+    
+    def add_parts_to_assembly(assembly_id, part_ids):
+        """
+        Adds selected parts to the specified assembly.
+
+        Args:
+            assembly_id (int): The ID of the selected assembly.
+            part_ids (list): List of selected PartIDs to add.
+        """
+        for part_id in part_ids:
+            print(f"DEBUG: Adding PartID {part_id} to Assembly {assembly_id}")
+
+            insert_query = """
+                INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, Quantity, EntityType)
+                VALUES (?, ?, ?, ?)
+            """
+            db_manager.execute_non_query(insert_query, (assembly_id, part_id, 1, "Part"), commit=True)
+
+        print(f"DEBUG: Successfully added parts {part_ids} to Assembly {assembly_id}.")

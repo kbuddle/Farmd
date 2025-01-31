@@ -85,7 +85,7 @@ def build_form(context, columns, initial_data=None, readonly_fields=None):
         tuple: (Tkinter Toplevel window, dictionary of entry widgets)
     """
 
-    from ui.ui_helpers import center_window_vertically
+    from src.ui.ui_helpers import center_window_vertically
     
     form_window = tk.Toplevel()
     form_window.title(f"{context} Entry Form")
@@ -111,7 +111,6 @@ def build_form(context, columns, initial_data=None, readonly_fields=None):
         entry_widgets[col_name] = entry_var
 
     return form_window, entry_widgets
-
 
 def populate_form_for_edit(data, column_definitions):
     """

@@ -97,7 +97,7 @@ COLUMN_DEFINITIONS = {
             "ParentAssemblyID": {"display_name": "ParentAssemblyID", "width": 50, "type": "int"},
             "EntityType": {"display_name": "Entity Type", "width": 150, "type": "string"},
             "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase"},
-            "ChildAssemblyID": {"display_name": "ChildAssembly ID", "width": 60, "type": "int", "foreign_key": True },
+            "ChildAssemblyID": {"display_name": "Child Assembly ID", "width": 60, "type": "int", "foreign_key": True, "default": 40 },
             "PartID": {"display_name": "Part ID", "width": 60, "type": "int"},
             "Quantity": {"display_name": "Quantity", "width": 60, "type": "real"},
             "HoursParts": {"display_name": "Hours for Parts", "width": 60, "type": "real"},
