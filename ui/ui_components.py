@@ -105,7 +105,8 @@ def create_datasheet_view(parent_widget, context_name, context_data, parent_fram
     queries = query_generator(context_name)
     fetch_query = queries.get("fetch_query", None)
 
-    print(f" here is what populate table is being called with for fetch_query, {fetch_query}")
+    if debug:
+        print(f" here is what populate table is being called with for fetch_query, {fetch_query}")
     # Populate table
     try:
         populate_table(treeview, fetch_query)

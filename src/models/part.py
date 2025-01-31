@@ -14,6 +14,7 @@ class Part(Item):
         """
         super().__init__(part_id, name)
         self.procurement_type = procurement_type
+        self.procurement_type = procurement_type if procurement_type else "Purchase"  # ✅ Ensure it is always set
 
     @classmethod
     def fetch_from_db(cls, part_id):

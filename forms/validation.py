@@ -1,43 +1,53 @@
-def validate_field(field_name, value, field_type, valid_values=None):
+def validate_field(field_name, value, field_type, valid_values=None, default=None):
     """
-    Validates a single field based on its type and constraints.
-
+    Validates a single field based on its type and constraints. If validation fails, assigns a default value if provided.
     Args:
         field_name (str): The name of the field being validated.
         value (any): The value of the field to validate.
         field_type (str): The type of the field ('text', 'int', 'float', 'required').
         valid_values (list, optional): List of acceptable values for the field (e.g., dropdown options).
+        default (any, optional): Default value if validation fails.
 
     Returns:
-        bool: True if the field is valid, otherwise raises a ValueError.
+        any: The validated value or the default.
 
     Raises:
-        ValueError: If validation fails.
+        ValueError: If validation fails and no default is provided.
     """
     # Check required fields
     if field_type == "required" and not value:
+        if default is not None:
+            print(f"WARNING: {field_name} is required but missing. Defaulting to {default}.")
+            return default
         raise ValueError(f"{field_name} is required.")
-    
+
     # Check for valid values if specified
     if valid_values and value not in valid_values:
+        if default is not None:
+            print(f"WARNING: Invalid value for {field_name}: {value}. Defaulting to {default}.")
+            return default
         raise ValueError(f"Invalid value for {field_name}: {value}. Expected one of {valid_values}.")
 
     # Type-specific validation
     if field_type == "int":
-        if not isinstance(value, int):
-            try:
-                int(value)
-            except ValueError:
-                raise ValueError(f"{field_name} must be an integer.")
+        try:
+            return int(value)
+        except ValueError:
+            if default is not None:
+                print(f"WARNING: {field_name} must be an integer. Defaulting to {default}.")
+                return default
+            raise ValueError(f"{field_name} must be an integer.")
     elif field_type == "float":
-        if not isinstance(value, float):
-            try:
-                float(value)
-            except ValueError:
-                raise ValueError(f"{field_name} must be a float.")
+        try:
+            return float(value)
+        except ValueError:
+            if default is not None:
+                print(f"WARNING: {field_name} must be a float. Defaulting to {default}.")
+                return default
+            raise ValueError(f"{field_name} must be a float.")
 
     # Validation successful
-    return True
+    return value
 
 
 def validate_form_data(context, form_data):

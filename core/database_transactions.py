@@ -6,28 +6,37 @@ from tkinter import ttk, Frame  # Consolidated imports
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 
 db_path = DATABASE_PATH
+debug = False,
 
 class ConnectionTracker:
+    
     def __init__(self):
         self.open_connections = []
 
     def add_connection(self, connection):
-        print("DEBUG: add_connection called")  # Add debug
+        #print("DEBUG: add_connection called")  # Add debug
+        debug=False
         self.open_connections.append(connection)
-        print(f"DEBUG: Connection opened. Total connections: {len(self.open_connections)}")
+        if debug:
+            print(f"DEBUG: Connection opened. Total connections: {len(self.open_connections)}")
 
     def remove_connection(self, connection):
-        print("DEBUG: remove_connection called")  # Add debug
+        #print("DEBUG: remove_connection called")  # Add debug
+        debug=False
         if connection in self.open_connections:
             self.open_connections.remove(connection)
-            print(f"DEBUG: Connection closed. Total connections: {len(self.open_connections)}")
+            if debug:
+                print(f"DEBUG: Connection closed. Total connections: {len(self.open_connections)}")
         else:
-            print(f"DEBUG: Attempted to close a connection that was not tracked.")
+            if debug:
+                print(f"DEBUG: Attempted to close a connection that was not tracked.")
 
     def force_close_all(self):
         """ Force close all connections to avoid leaks """
+        debug=False
         for conn in self.open_connections.copy():
-            print(f"DEBUG: Force closing lingering connection {conn}")
+            if debug:
+                print(f"DEBUG: Force closing lingering connection {conn}")
             conn.close()
             self.remove_connection(conn)
 
@@ -56,7 +65,8 @@ class DatabaseTransactionManager:
         self.connection_tracker.remove_connection(self.connection)
         DatabaseTransactionManager._instance = None
 
-    def begin_transaction(self, debug=DEBUG):
+    def begin_transaction(self, debug=False):
+        debug=False
         if debug:
             print(f"DEBUG: Checking if transaction is active: {self.in_transaction}")  # Debugging
         """
@@ -72,6 +82,7 @@ class DatabaseTransactionManager:
         """
         Commit the current transaction and finalize the changes.
         """
+        debug=False
         if self.in_transaction:
             self.connection.commit()
             self.in_transaction = False
@@ -123,7 +134,8 @@ class DatabaseTransactionManager:
             print(f"Unexpected error: {e}")
             raise e
         finally:
-            print(f"DEBUG: Closing connection in execute_query")
+            if debug:
+                print(f"DEBUG: Closing connection in execute_query")
             #self.close()  # Ensure connection is closed
 
     def execute_non_query(self, query, params=None, transactional=True, commit=False, debug=False):

@@ -19,7 +19,7 @@ from core.database_transactions import db_manager  # Import db_manager for clean
 
 # Force cleanup of all connections on application exit
 def cleanup():
-    print("DEBUG: Application exiting. Force-closing all database connections...")
+    #print("DEBUG: Application exiting. Force-closing all database connections...")
     db_manager.connection_tracker.force_close_all()
 
 # Register the cleanup function with atexit
@@ -92,7 +92,7 @@ def main(test_mode=True):
 
             # Pass the table name (context_name) and full context_data
             create_datasheet_tab(notebook, context_name, context_data) 
-            print(f"Successfully created tab for context: {context_name}")
+            #print(f"Successfully created tab for context: {context_name}")
 
         except Exception as e:
             print(f"Failed to create tab for context '{context_name}': {e}")

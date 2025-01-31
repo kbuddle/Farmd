@@ -14,7 +14,7 @@ from ui.ui_components import create_datasheet_view  # ✅ Import the new functio
 from ui.ui_events import on_datasheet_selection
 from ui.ui_components import create_available_parts_view
 
-def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None, debug=DEBUG):
+def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None, debug=False):
     """
     Creates a notebook tab for a datasheet and configures buttons, while delegating table creation
     to `create_datasheet_view`.
@@ -34,7 +34,8 @@ def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None
 
     # Generate queries and validate them
     queries = query_generator(context_name)
-    print(f"DEBUG: Queries generated for {context_name}: {queries}")  # ✅ Print query output
+    if debug:
+        print(f"DEBUG: Queries generated for {context_name}: {queries}")  # ✅ Print query output
     
     if not queries or "fetch_query" not in queries or queries["fetch_query"] is None:
         raise ValueError(f"Query generation failed for {context_name}. Received: {queries}")
@@ -43,10 +44,11 @@ def create_datasheet_tab(notebook, context_name, context_data, parent_frame=None
     # Initialize the tab
     tab = ttk.Frame(notebook)
     notebook.add(tab, text=context_data["name"])
-    print(f"Tab '{context_data['name']}' successfully added to the notebook")
+    if debug:
+        print(f"Tab '{context_data['name']}' successfully added to the notebook")
 
     # ✅ Call `create_datasheet_view` to generate the table inside the tab
-    table_frame, treeview = create_datasheet_view(tab, context_name, context_data, debug=DEBUG)
+    table_frame, treeview = create_datasheet_view(tab, context_name, context_data, debug=False)
 
     if context_name == "Assemblies":
         create_available_parts_view(tab, assembly_id=1, debug=debug)

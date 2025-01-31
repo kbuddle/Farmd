@@ -54,7 +54,7 @@ def sort_table(treeview, column, fetch_query):
             print(f"Error in sort_table: {e}")
 
 
-def populate_table(treeview, fetch_query, debug=DEBUG): 
+def populate_table(treeview, fetch_query, debug=False): 
     """
     Populates the Treeview with data from the database.
     :param treeview: The Treeview widget.
