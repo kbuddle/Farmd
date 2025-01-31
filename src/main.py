@@ -8,7 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.models.part import Part
 from src.models.assembly import Assembly
 
-
 import atexit
 from tkinter import Tk, ttk
 from ui.notebook_manager import create_datasheet_tab
@@ -17,9 +16,6 @@ from ui.ui_helpers import placeholder_add, placeholder_build, placeholder_clone,
 from forms.validation import validate_contexts
 from config.config_data import CONTEXTS, COLUMN_DEFINITIONS, DEBUG, DATABASE_PATH
 from core.database_transactions import db_manager  # Import db_manager for cleanup
-
-
-
 
 # Force cleanup of all connections on application exit
 def cleanup():
@@ -37,16 +33,22 @@ def run_oop_test():
     bolt = Part(1, "Bolt", "Purchase")
     frame = Part(2, "Frame", "Make")
 
+    # Save parts to the database
+    bolt.save_to_db()
+    frame.save_to_db()
+
     # Step 2: Create an Assembly
     robot_arm = Assembly(1001, "Robot Arm", "Make")
+    robot_arm.save_to_db()  # Save assembly before adding parts
 
     # Step 3: Assign Parts to the Assembly
-    robot_arm.add_part(bolt, 10)  # 10 Bolts
-    robot_arm.add_part(frame, 1)  # 1 Frame
+    robot_arm.add_part(bolt, 10)  # ✅ First Assignment
+    robot_arm.add_part(bolt, 5)   # ✅ Should update quantity instead of inserting duplicate
+    robot_arm.add_part(frame, 1)  # ✅ Add another part
 
     # Step 4: Output Assigned Parts
-    print("🛠️ Assembly Parts List:")
-    print(robot_arm.list_parts())  # Expected Output: [('Bolt', 10), ('Frame', 1)]
+    print("\n🛠️ Assembly Parts List:")
+    print(robot_arm.list_parts())  # Expected Output: [('Bolt', 15), ('Frame', 1)]
 
     # Step 5: Check Dictionary Conversion (for backward compatibility)
     print("\n🔄 Dictionary Representation:")
@@ -61,23 +63,21 @@ def run_oop_test():
         print(e)
 
 def main(test_mode=True):
-    #print("Main function started")
+    """Main function controlling UI and test execution."""
+    
     if test_mode:
         print("\n🔍 Running OOP Test...\n")  # Debug message to confirm execution
         run_oop_test()  # ✅ Force execution of the test
 
     # Define context names (list of strings)
     context_names = CONTEXTS["Some"] if test_mode else CONTEXTS["All"]
-    #print(f"Contexts: {context_names}")
 
     # Initialize Tkinter root and notebook
     root = Tk()
     root.title("FarmBot Management")
-    #print("Tkinter window initialized")
 
     notebook = ttk.Notebook(root)
     notebook.pack(fill="both", expand=True)
-    #print("Notebook widget created")
 
     # Loop through the context names and fetch corresponding data
     for context_name in context_names:
@@ -89,7 +89,6 @@ def main(test_mode=True):
 
             # Add the 'name' key to context_data for tab display
             context_data["name"] = context_name
-            #print(f"Updated context data passed to create_database_tab '{context_data}'")
 
             # Pass the table name (context_name) and full context_data
             create_datasheet_tab(notebook, context_name, context_data) 

@@ -22,34 +22,25 @@ atexit.register(cleanup)
 
 def run_oop_test():
     """Runs a basic test for the OOP refactor."""
-    print("\n🛠️ Running OOP Test...")
-
-    # Step 1: Create Parts
+    # Create parts
     bolt = Part(1, "Bolt", "Purchase")
     frame = Part(2, "Frame", "Make")
 
-    # Step 2: Create an Assembly
-    robot_arm = Assembly(1001, "Robot Arm", "Make")
+    bolt.save_to_db()
+    frame.save_to_db()
 
-    # Step 3: Assign Parts to the Assembly
-    robot_arm.add_part(bolt, 10)  # 10 Bolts
-    robot_arm.add_part(frame, 1)  # 1 Frame
+    # Create an assembly
+    robot_arm = Assembly(1001, "Robot Arm")
+    robot_arm.save_to_db()
 
-    # Step 4: Output Assigned Parts
-    print("🛠️ Assembly Parts List:")
-    print(robot_arm.list_parts())  # Expected Output: [('Bolt', 10), ('Frame', 1)]
+    # Assign parts
+    robot_arm.add_part(bolt, 10)  # Initially Purchase
+    robot_arm.update_procurement_type()  # Should still be Purchase
 
-    # Step 5: Check Dictionary Conversion (for backward compatibility)
-    print("\n🔄 Dictionary Representation:")
-    print(robot_arm.to_dict())  # Expected dictionary format
+    robot_arm.add_part(frame, 1)  # Now Hybrid
+    robot_arm.update_procurement_type()  # Should update to Hybrid
 
-    # Step 6: Test Procurement Validation (Should Raise an Error)
-    try:
-        purchased_assembly = Assembly(2002, "Pre-Built Kit", "Purchase")
-        purchased_assembly.add_part(frame, 2)  # Trying to add a 'Make' part to a 'Purchase' assembly
-    except ValueError as e:
-        print("\n🚨 Error Caught as Expected:")
-        print(e)
+    print(f"🔹 Updated ProcurementType for {robot_arm.name}: {robot_arm.procurement_type}")
 
 def main(test_mode=True):
     #print("Main function started")

@@ -37,6 +37,7 @@ COLUMN_DEFINITIONS = {
             "AssemWeightFlag": {"display_name": "Weight Flag", "width": 80, "type": "int", "default": 0},
             "AssemStatus": {"display_name": "Status", "width": 100, "type": "string", "default": "Prelim"},
             "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string"},
+            "ProcurementType": {"display_name": "Procurement Type", "width": 100, "type": "string", "default": "Purchase"},
             "CreationDate": {"display_name": "Creation Date", "width": 120, "type": "string", "default": "2025-01-01", "admin": True},
             "LastUpdatedDate": {"display_name": "Last Updated Date", "width": 120, "type": "string", "default": "2025-01-01", "admin": True}
         }

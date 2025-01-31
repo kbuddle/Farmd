@@ -1,6 +1,9 @@
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
 from core.database_transactions import db_manager  # ✅ Use transaction manager instance
+from forms.validation import validate_field  # ✅ Import validation function
+
+VALID_PROCUREMENT_TYPES = {"Purchase", "Make", "Hybrid"}
 
 class Assembly(Item):
     def __init__(self, assembly_id, name, procurement_type="Purchase"):
@@ -43,9 +46,9 @@ class Assembly(Item):
     def update_procurement_type(self):
         """
         Updates the procurement type of an assembly based on assigned parts.
-        If all assigned parts are 'Make', it sets to 'Make'.
-        If at least one part is 'Make' and the rest are 'Purchase', it sets to 'Hybrid'.
-        Otherwise, it remains 'Purchase'.
+        - If all assigned parts are 'Make', it sets to 'Make'.
+        - If at least one part is 'Make' and others are 'Purchase', it sets to 'Hybrid'.
+        - If all parts are 'Purchase' or there are no parts, it sets to 'Purchase'.
         """
         query = """
             SELECT DISTINCT p.ProcurementType
@@ -56,19 +59,82 @@ class Assembly(Item):
         result = db_manager.execute_query(query, (self.item_id,))
 
         if not result:
-            return  # No parts assigned, do nothing
-
-        procurement_types = {row["ProcurementType"] for row in result}
-
-        if procurement_types == {"Make"}:
-            self.procurement_type = "Make"
-        elif "Make" in procurement_types:
-            self.procurement_type = "Hybrid"
+            self.procurement_type = "Purchase"  # No parts assigned, default to Purchase
         else:
-            self.procurement_type = "Purchase"
+            procurement_types = {row["ProcurementType"] for row in result}
+
+            if procurement_types == {"Make"}:
+                self.procurement_type = "Make"
+            elif "Make" in procurement_types:
+                self.procurement_type = "Hybrid"
+            else:
+                self.procurement_type = "Purchase"
 
         # Update the database with the new ProcurementType
         update_query = """
             UPDATE Assemblies SET ProcurementType = ? WHERE AssemblyID = ?
         """
         db_manager.execute_non_query(update_query, (self.procurement_type, self.item_id), commit=True)
+
+        print(f"DEBUG: Assembly {self.name} updated to ProcurementType: {self.procurement_type}")
+
+    def add_part(self, part, quantity):
+        """
+        Assigns a part to this assembly and updates procurement type.
+
+        :param part: Part object
+        :param quantity: Quantity of the part
+        """
+        entity_type = "Part"  # ✅ Assign a default entity type
+
+        # ✅ Ensure `procurement_type` exists before validation
+        if not hasattr(part, "procurement_type") or part.procurement_type is None:
+            print(f"WARNING: {part.name} is missing a valid ProcurementType. Defaulting to 'Purchase'.")
+            part.procurement_type = "Purchase"  # ✅ Assign default before validation
+
+        # ✅ Validate ProcurementType using `validate_field()`
+        part.procurement_type = validate_field(
+            "ProcurementType", 
+            part.procurement_type, 
+            "text",  # Treat as text type
+            valid_values=VALID_PROCUREMENT_TYPES, 
+            default="Purchase"
+        )
+
+        # ✅ Debugging Output: Log before inserting into the database
+        print(f"DEBUG: Inserting into Assemblies_Parts - Part: {part.name}, ProcurementType: {part.procurement_type}, AssemblyID: {self.item_id}, PartID: {part.item_id}, Quantity: {quantity}, EntityType: {entity_type}")
+
+        check_query = "SELECT ID FROM Assemblies_Parts WHERE AssemblyID = ? AND PartID = ?"
+        result = db_manager.execute_query(check_query, (self.item_id, part.item_id))
+
+        if result:
+            update_query = """
+                UPDATE Assemblies_Parts 
+                SET ProcurementType = ?, AssemblyID = ?, PartID = ?, Quantity = ?, EntityType = ?
+                WHERE ID = ?
+            """
+            db_manager.execute_non_query(update_query, (part.procurement_type, self.item_id, part.item_id, quantity, entity_type, result[0]["ID"]), commit=True)
+        else:
+            insert_query = """
+                INSERT INTO Assemblies_Parts (ProcurementType, AssemblyID, PartID, Quantity, EntityType) 
+                VALUES (?, ?, ?, ?, ?)
+            """
+            db_manager.execute_non_query(insert_query, (part.procurement_type, self.item_id, part.item_id, quantity, entity_type), commit=True)
+
+        # ✅ Update procurement type after adding a part
+        self.update_procurement_type()
+
+    def list_parts(self):
+        """Fetches all parts assigned to this assembly from the database."""
+        query = """
+            SELECT p.PartName, ap.Quantity
+            FROM Assemblies_Parts ap
+            JOIN Parts p ON ap.PartID = p.PartID
+            WHERE ap.AssemblyID = ?
+        """
+        result = db_manager.execute_query(query, (self.item_id,))
+
+        if not result:
+            return []  # Return empty list if no parts found
+
+        return [(row["PartName"], row["Quantity"]) for row in result]
