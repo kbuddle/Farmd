@@ -7,10 +7,31 @@ import tkinter as tk
 from tkinter import messagebox, StringVar, Button
 from tkinter import ttk, Frame  # Consolidated imports
 from core.query_builder import query_generator
+from src.database.operations import DatabaseOperations
 
+import tkinter as tk
+from tkinter import messagebox
+
+class UIHelpers:
+    """ Handles UI notifications separately from database logic. """
+
+    @staticmethod
+    def show_error(title, message):
+        """ Displays an error message in a popup. """
+        messagebox.showerror(title, message)
+
+    @staticmethod
+    def show_info(title, message):
+        """ Displays an informational message in a popup. """
+        messagebox.showinfo(title, message)
+
+    @staticmethod
+    def ask_confirmation(title, message):
+        """ Asks user for confirmation and returns True/False. """
+        return messagebox.askyesno(title, message)
 
 def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item, delete_item, table, build_assy=None):
-    from src.database.database_utils import add_item, edit_item
+    
     """
     Creates a frame with buttons for CRUD operations and other context-specific actions.
     :param parent_frame: The parent frame to place the buttons in.

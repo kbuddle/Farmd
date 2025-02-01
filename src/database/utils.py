@@ -3,6 +3,7 @@ import shutil
 from datetime import datetime
 from tkinter import messagebox
 from src.database.queries import DatabaseQueryExecutor
+from src.ui.ui_helpers import UIHelpers
 
 # Define paths
 DB_FILE = "src/db/app_data.sqlite"
@@ -82,3 +83,55 @@ class DatabaseUtils:
             print(f"✅ Database backup successful: {backup_path}")
         except Exception as e:
             print(f"🚨 Backup failed: {e}")
+
+    @staticmethod
+    def prepare_update_params(columns, form_data):
+        """
+        Prepares a dictionary of parameters for an SQL UPDATE query.
+
+        Args:
+            columns (dict): Dictionary containing column metadata.
+            form_data (dict): Dictionary containing user input data.
+
+        Returns:
+            dict: Dictionary with column names as keys and input values as values.
+        """
+        params = {}
+        for col_name, col_details in columns.items():
+            if col_name in form_data:
+                value = form_data[col_name]
+                if isinstance(value, tk.StringVar):
+                    value = value.get()  # ✅ Extract value from Tkinter StringVar if necessary
+                params[col_name] = value
+
+        return params
+    
+    @staticmethod
+    def insert_item_in_db(db_query_executor, context, columns, form_data, insert_query, debug=False):
+        """
+        Inserts a cloned item into the database.
+
+        Args:
+            db_query_executor: Database executor instance.
+            context (str): Context of the item.
+            columns (dict): Column definitions.
+            form_data (dict): Data collected from the form.
+            insert_query (str): SQL INSERT query.
+            debug (bool): Debug flag.
+
+        Raises:
+            Exception: If the database insertion fails.
+        """
+        try:
+            params = {
+                col: form_data.get(col, None)
+                for col in columns.keys()
+                if not columns[col].get("is_primary_key", False)
+            }
+
+            db_query_executor.execute_non_query(insert_query, params, commit=True)
+            UIHelpers.show_info("Success", f"{context} inserted successfully.")
+
+        except Exception as e:
+            UIHelpers.show_error("Error", f"Failed to insert {context}: {e}")
+            raise
