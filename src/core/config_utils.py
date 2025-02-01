@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
 
 def get_column_attribute_for_context(context, attribute):

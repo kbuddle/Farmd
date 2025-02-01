@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 def get_processed_column_definitions(column_definitions, exclude_hidden=True, debug=False):
     """
     Processes column definitions, optionally filtering out hidden or admin-only columns.

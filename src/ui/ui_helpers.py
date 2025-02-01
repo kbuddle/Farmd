@@ -1,3 +1,7 @@
+# subject to redistribution within new filing structure.
+
+# Helper functions for layout adjustments, resizing.
+
 import sqlite3
 import tkinter as tk
 from tkinter import messagebox, StringVar, Button

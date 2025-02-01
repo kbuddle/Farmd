@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 from ui.ui_components import create_card_frame
 from src.database.database_utils import get_entity_details
 

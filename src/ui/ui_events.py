@@ -1,10 +1,13 @@
+# subject to redistribution within new filing structure.
+
 from tkinter import Toplevel, Frame, Button
 from src.ui.ui_components import create_card_frame, create_assigned_parts_table, create_available_parts_table
 
 from src.models.assembly import Assembly
 from src.models.part import Part
 from src.core.database_transactions import DatabaseTransactionManager
-from src.core.actions import add_item, edit_item, clone_item, delete_item
+from src.core.actions import add_item
+from src.database.database_utils import edit_item, clone_item, delete_item
 
 from src.models.assembly import Assembly  # ✅ Import Assembly class
 
@@ -125,3 +128,4 @@ def populate_table(treeview, fetch_query, params=None, debug=True):
 
     except Exception as e:
         print(f"❌ ERROR in populate_table: {e}")
+

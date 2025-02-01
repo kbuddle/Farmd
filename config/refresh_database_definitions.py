@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import sqlite3
 from config_data import COLUMN_DEFINITIONS, DEBUG, DATABASE_PATH
 

@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 class Item:
     def __init__(self, item_id, name):
         """

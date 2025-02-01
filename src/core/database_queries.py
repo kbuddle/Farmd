@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 from src.core.database_transactions import DatabaseTransactionManager
 from config.config_data import DATABASE_PATH
 

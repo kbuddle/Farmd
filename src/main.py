@@ -1,6 +1,9 @@
+# subject to redistribution within new filing structure.
+
 import sys
 import os
 import atexit
+import tkinter as tk
 from tkinter import Tk, Frame
 from src.models.part import Part
 from src.models.assembly import Assembly
@@ -9,6 +12,9 @@ from src.ui.ui_events import on_assembly_selection
 from config.config_data import DEBUG, DATABASE_PATH
 from src.core.database_transactions import DatabaseTransactionManager  # Import db_manager for cleanup
 from src.core.database_transactions import db_manager
+from src.ui.ui_components import ScrollableFrame  # Import UI component
+
+
 # Ensure src/ is in Python’s path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -31,7 +37,7 @@ def main(test_mode=False):
     root.resizable(True, True)
 
     # ✅ Main container for everything
-    main_container = Frame(root, name="main_container")
+    main_container = ScrollableFrame(root)
     main_container.pack(fill="both", expand=True)
 
     # ✅ Frame for assemblies list and card view (upper section)

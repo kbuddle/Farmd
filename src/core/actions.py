@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 #actions.py
 import tkinter as tk
 from tkinter import ttk, messagebox

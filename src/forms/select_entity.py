@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import os
 from tkinter import Toplevel, Frame, Label, Button, Entry, ttk
 from PIL import Image, ImageTk

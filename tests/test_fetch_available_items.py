@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import unittest
 from core.database_queries import fetch_available_items
 

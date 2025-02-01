@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import tkinter as tk
 from config.config_data import COLUMN_DEFINITIONS
 from tkinter import Tk, ttk, StringVar, messagebox

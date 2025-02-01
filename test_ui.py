@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import os
 import tkinter as tk
 from forms.select_entity import select_image_window

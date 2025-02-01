@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import sqlite3
 
 DB_PATH = r"D:\FarmbotPythonV2\src\database\farmbot.db"

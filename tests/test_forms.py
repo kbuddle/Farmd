@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 import unittest
 import os
 from tkinter import Tk

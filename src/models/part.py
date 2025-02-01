@@ -1,3 +1,5 @@
+# subject to redistribution within new filing structure.
+
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
 from src.core.database_transactions import db_manager
