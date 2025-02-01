@@ -5,22 +5,34 @@ import os
 import atexit
 import tkinter as tk
 from tkinter import Tk, Frame
-from src.models.part import Part
-from src.models.assembly import Assembly
+#from src.models.part import Part
+#from src.models.assembly import Assembly
 from src.ui.ui_components import create_assemblies_table
 from src.ui.ui_events import on_assembly_selection
 from config.config_data import DEBUG, DATABASE_PATH
-from src.core.database_transactions import DatabaseTransactionManager  # Import db_manager for cleanup
-from src.core.database_transactions import db_manager
+from src.database.transaction import DatabaseTransactionManager
+from src.database.utils import DatabaseUtils
+from src.database.operations import DatabaseOperations
+from src.database.connection import DatabaseConnection
 from src.ui.ui_components import ScrollableFrame  # Import UI component
+from src.database.tracker import ConnectionTracker
 
 
 # Ensure src/ is in Python’s path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+db_instance=DatabaseConnection()
+
+# Initialize db_manager once
+db_manager = DatabaseTransactionManager()
+
+# Pass db_manager to all components that need it
+db_utils = DatabaseUtils(db_manager)
+db_operations = DatabaseOperations(db_manager)
+
 # Force cleanup of all connections on application exit
 def cleanup():
-    db_manager.connection_tracker.force_close_all()
+    db_instance.connection_tracker.force_close_all()
 
 atexit.register(cleanup)
 

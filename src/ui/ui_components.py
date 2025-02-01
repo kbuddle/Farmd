@@ -4,13 +4,13 @@
 
 import tkinter as tk
 from tkinter import ttk, Frame, Label, Button
-from core.query_builder import query_generator
+from src.core.query_builder import query_generator
 from src.ui.shared_utils import populate_table, sort_table
-from src.core.database_transactions import db_manager
+from src.database.operations import DatabaseOperations
+from src.database.queries import DatabaseQueryExecutor
 from config.config_data import DEBUG
 from src.core.view_management import get_processed_columns
 
-from src.database.database_utils import delete_item, clone_item, add_item, edit_item
 
 class ScrollableFrame(ttk.Frame):
     """A scrollable frame to contain widgets that exceed frame dimensions."""
@@ -108,7 +108,6 @@ def create_available_parts_view(parent_widget, assembly_id, debug=DEBUG):
     from tkinter import ttk, Frame, Entry, Label, StringVar
     from src.ui.shared_utils import sort_table, populate_table
     from core.database_queries import fetch_available_items
-    from src.core.database_transactions import db_manager
 
     if debug:
         print(f"Creating available parts view for assembly: {assembly_id}")
@@ -248,12 +247,10 @@ def create_available_parts_table(parent_widget, assembly_id, assigned_parts_tabl
         if not selected_items:
             return
 
-        from src.core.database_transactions import db_manager
-
         insert_query = "INSERT INTO Assemblies_Parts (ProcurementType, ID, PartID, Quantity, EntityType) VALUES (?, ?, ?, ?, ?)"
         for item in selected_items:
             part_id = treeview.item(item, "values")[0]
-            db_manager.execute_non_query(insert_query, params=("Purchase", assembly_id, part_id, 1, "Part"), commit=True)
+            db_executor.execute_non_query(insert_query, params=("Purchase", assembly_id, part_id, 1, "Part"), commit=True)
 
         # Refresh the assigned parts table
         populate_table(assigned_parts_table, "SELECT p.PartID, p.PartName, ap.Quantity FROM Assemblies_Parts ap JOIN Parts p ON ap.PartID = p.PartID WHERE ap.ID = ?", params=(assembly_id,))

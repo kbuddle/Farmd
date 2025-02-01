@@ -5,9 +5,8 @@ from src.ui.ui_components import create_card_frame, create_assigned_parts_table,
 
 from src.models.assembly import Assembly
 from src.models.part import Part
-from src.core.database_transactions import DatabaseTransactionManager
-from src.core.actions import add_item
-from src.database.database_utils import edit_item, clone_item, delete_item
+from src.database.transaction import DatabaseTransactionManager
+from src.database.operations import DatabaseOperations
 
 from src.models.assembly import Assembly  # ✅ Import Assembly class
 
