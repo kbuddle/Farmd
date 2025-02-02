@@ -11,29 +11,24 @@ from src.core.view_management import get_processed_columns
 from src.models.item import Assembly, Part, Supplier  # Import CRUD models
 
 
-class ScrollableFrame(ttk.Frame):
-    """A scrollable frame to contain widgets that exceed frame dimensions."""
-    
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+class ScrollableFrame(ttk.LabelFrame):  # Change from ttk.Frame to ttk.LabelFrame
+    def __init__(self, parent, text=None, *args, **kwargs):
+        super().__init__(parent, text=text, *args, **kwargs)  # Pass text to LabelFrame
 
-        self.canvas = tk.Canvas(self, borderwidth=0)
+        self.canvas = tk.Canvas(self)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
-        # Scrollbars
-        self.v_scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.h_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
-        self.canvas.configure(yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set)
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
-        self.v_scrollbar.pack(side="right", fill="y")
-        self.h_scrollbar.pack(side="bottom", fill="x")
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.scrollbar.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
 
-        # Place frame inside canvas
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-
-        # Resize event to adjust scroll region
-        self.scrollable_frame.bind("<Configure>", self._update_scroll_region)
+        # Expose the internal frame for widgets
+        self.frame = self.scrollable_frame
 
     def _update_scroll_region(self, event=None):
         """Update the scroll region when content changes."""

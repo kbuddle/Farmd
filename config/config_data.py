@@ -114,17 +114,39 @@ CONTEXTS ={
     "All": ["Assemblies", "Parts","Images", "Drawings", "Suppliers"],
     "Some": ["Assemblies"],    }
 
-VIEW_DEFINITIONS = {
-    "card_view": {
-        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours"],
-        "order": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours"]
-    },
-    "datasheet_view": {
-        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours", "Cost", "Weight"],
-        "order": ["AssemblyName", "ProcurementType", "Quantity", "Cost", "Weight", "TotalHours"]
-    },
-    "detailed_view": {
-        "fields": ["AssemblyName", "ProcurementType", "Quantity", "TotalHours", "Cost", "Weight", "Manufacturer"],
-        "order": ["AssemblyName", "Manufacturer", "ProcurementType", "Quantity", "Cost", "Weight", "TotalHours"]
+VIEW_DEFINITION = {
+    "PartsForm": {
+        "title": "Parts Management",
+        "geometry": "900x600",
+        "parts_tree": {
+            "columns": ["PartName", "ManPartNum", "Model", "Make", "Dimensions"],
+            "headings": {
+                "PartName": "Part Name",
+                "ManPartNum": "Part Number",
+                "Model": "Model",
+                "Make": "Make",
+                "Dimensions": "Dimensions"
+            },
+            "show": "headings",
+            "bind_event": "<ButtonRelease-1>"
+        },
+        "detail_frame": {
+            "text": "Part Details"
+        },
+        "fields": {
+            "PartName": {"label": "Part Name", "width": 60},
+            "ManPartNum": {"label": "Part Number", "width": 150},
+            "Model": {"label": "Model", "width": 130},
+            "Make": {"label": "Make", "width": 130},
+            "Dimensions": {"label": "Dimensions", "width": 200}
+        },
+        "button_frame": {
+            "buttons": {
+                "Save": "save_part",
+                "Clone": "clone_part",
+                "Delete": "delete_part",
+                "Cancel": "clear_form"
+            }
+        }
     }
 }
