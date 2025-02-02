@@ -6,12 +6,11 @@ from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
-from src.core.database_transactions import DatabaseTransactionManager
+from src.database.transaction import DatabaseTransactionManager
 
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
 
 
-db_manager = DatabaseTransactionManager(DATABASE_PATH)
 
 # Dictionary to track the current sort direction for each column
 sort_directions = {}
@@ -54,7 +53,7 @@ def populate_table(treeview, fetch_query, params=None, debug=True):
 
     try:
         # ✅ Fetch results from database
-        rows = db_manager.execute_query(fetch_query, params=params, debug=debug)
+        rows = self.que.execute_query(fetch_query, params=params, debug=debug)
 
         # ✅ Print fetched rows for debugging
         print(f"✅ DEBUG: Query returned {len(rows)} rows")

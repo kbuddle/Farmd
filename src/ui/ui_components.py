@@ -4,8 +4,7 @@
 
 import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
-from src.core.query_builder import query_generator
-from src.ui.shared_utils import populate_table, sort_table
+from src.database.query_generator import QueryGenerator
 from src.database.queries import DatabaseQueryExecutor
 from config.config_data import DEBUG
 from src.core.view_management import get_processed_columns
@@ -347,13 +346,12 @@ def create_assemblies_screen(parent_widget):
     Args:
         parent_widget (tk.Widget): The main container for the assemblies screen.
     """
-    from src.core.actions import add_item, edit_item, clone_item , delete_item
-    
+        
     print("✅ DEBUG: Creating main assemblies screen")
     from src.ui.ui_helpers import get_selected_assembly
 
     # ✅ Create frame for assemblies list
-    table_frame, assemblies_table = create_assemblies_table(parent_widget)
+    table_frame, assemblies_table = create_assemblies_screen(parent_widget)
 
     # ✅ Create button frame below the assemblies list
     button_frame = Frame(parent_widget, name="button_frame")

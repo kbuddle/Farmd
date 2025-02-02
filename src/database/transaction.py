@@ -1,6 +1,6 @@
 # Read, write, update, and delete operations.
 
-from core.database.connection import DatabaseConnection
+from src.database.connection import DatabaseConnection
 
 class DatabaseTransactionManager:
     """ Handles database transactions while ensuring connection tracking. """
