@@ -2,7 +2,7 @@
 
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
-from src.database.queries import DatabaseQueryExecutor
+from src.database.database_query_executor import DatabaseQueryExecutor
 
 
 class Part(Item):

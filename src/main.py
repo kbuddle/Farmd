@@ -3,111 +3,95 @@ import os
 import atexit
 import tkinter as tk
 from tkinter import Tk, Frame, Button
-from src.ui.ui_components import create_assemblies_screen
-from src.ui.ui_events import on_assembly_selection
-from config.config_data import DEBUG, DATABASE_PATH
-from src.database.transaction import DatabaseTransactionManager
-from src.database.utils import DatabaseUtils
-from src.database.operations import DatabaseOperations
-from src.database.connection import DatabaseConnection
 from src.ui.ui_components import ScrollableFrame  
-from src.database.tracker import ConnectionTracker
-from src.database.DatabaseManager import DatabaseManager
-from src.core.data_manager import DataManager
-from src.ui.ui_controller import UIController
+from src.ui.ui_events import on_assembly_selection
+from src.core.service_container import ServiceContainer
+from src.ui.assemblies_screen import AssembliesScreen
+from config.config_data import DEBUG
+from src.ui.entity_screen import EntityScreen
+from src.database.datasheet_manager import DatasheetManager
 
 # Ensure src/ is in Python’s path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-db_manager = DatabaseManager()
-data_manager = DataManager(db_manager)
-ui_controller = UIController(data_manager)
-
-
-db_instance = DatabaseConnection()
-db_manager = DatabaseTransactionManager()
-db_utils = DatabaseUtils(db_manager)
-db_operations = DatabaseOperations(db_manager)
+# ✅ Initialize the service container
+services = ServiceContainer()    
 
 def cleanup():
-    db_instance.connection_tracker.force_close_all()
+    """Ensures all database connections are closed on exit."""
+    services.database_service.database_manager.close_all_connections() 
 
 atexit.register(cleanup)
 
-def show_landing_page(root, main_container):
-    """Displays the main landing page with navigation buttons."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
+# ✅ UI HANDLING SEPARATED FROM DATA OPERATIONS
+class FarmBotApp:
+    """Main UI controller for the FarmBot management system."""
 
-    landing_frame = Frame(main_container)
-    landing_frame.pack(expand=True)
+    def __init__(self, root):
+        """
+        Initializes the main UI.
 
-    Button(landing_frame, text="Assemblies", command=lambda: show_assemblies(root, main_container)).pack(pady=10)
-    Button(landing_frame, text="Parts", command=lambda: show_parts(root, main_container)).pack(pady=10)
-    Button(landing_frame, text="Suppliers", command=lambda: show_suppliers(root, main_container)).pack(pady=10)
-    Button(landing_frame, text="Drawings", command=lambda: show_drawings(root, main_container)).pack(pady=10)
-    Button(landing_frame, text="Images", command=lambda: show_images(root, main_container)).pack(pady=10)
-    
-    Button(landing_frame, text="Exit", command=root.quit).pack(pady=20)
+        Args:
+            root (tk.Tk): The main application window.
+        """
+        self.root = root
+        self.root.title("FarmBot Management")
+        self.root.geometry("1000x600")
+        self.root.resizable(True, True)
 
-def show_assemblies(root, main_container):
-    """Loads the Assemblies module dynamically."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
+        self.main_container = ScrollableFrame(self.root)
+        self.main_container.pack(fill="both", expand=True)
 
-    assemblies_container = Frame(main_container)
-    assemblies_container.pack(fill="both", expand=True)
+        self.show_landing_page()
 
-    card_frame = Frame(assemblies_container, relief="sunken", borderwidth=2)
-    card_frame.pack(fill="x", expand=True, padx=5, pady=5)
+    def clear_main_container(self):
+        """Clears all widgets in the main container before loading a new module."""
+        for widget in self.main_container.winfo_children():
+            widget.destroy()
 
-    parts_container = Frame(main_container, relief="ridge", borderwidth=2)
-    parts_container.pack(fill="both", expand=True)
+    def show_landing_page(self):
+        """Displays the main landing page with navigation buttons."""
+        self.clear_main_container()
+        landing_frame = Frame(self.main_container)
+        landing_frame.pack(expand=True)
 
-    assemblies_frame, assemblies_table = create_assemblies_screen(assemblies_container)
-    assemblies_table.bind("<<TreeviewSelect>>", lambda event: on_assembly_selection(event, assemblies_table, card_frame, parts_container))
+        Button(landing_frame, text="Assemblies", command=self.show_assemblies).pack(pady=10)
+        Button(landing_frame, text="Parts", command=self.show_parts).pack(pady=10)
+        Button(landing_frame, text="Suppliers", command=self.show_suppliers).pack(pady=10)
+        Button(landing_frame, text="Drawings", command=self.show_drawings).pack(pady=10)
+        Button(landing_frame, text="Images", command=self.show_images).pack(pady=10)
+        Button(landing_frame, text="Exit", command=self.root.quit).pack(pady=20)
 
-    Button(assemblies_container, text="Back to Main", command=lambda: show_landing_page(root, main_container)).pack(pady=10)
+    def show_assemblies(self):
+        """Loads the Assemblies module dynamically."""
+        self.clear_main_container()
+        AssembliesScreen(self.main_container, self.show_landing_page)
 
-def show_parts(root, main_container):
-    """Placeholder function for Parts module."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
+    def show_parts(self):
+        """Loads the Parts module dynamically."""
+        self.clear_main_container()
+        EntityScreen(self.main_container, "Parts", self.show_landing_page)
+       
+    def show_suppliers(self):
+        """Loads the Suppliers module dynamically."""
+        self.clear_main_container()
+        frame = Frame(self.main_container)
+        frame.pack(expand=True)
+        Button(frame, text="Back to Main", command=self.show_landing_page).pack()
 
-    frame = Frame(main_container)
-    frame.pack(expand=True)
+    def show_drawings(self):
+        """Loads the Drawings module dynamically."""
+        self.clear_main_container()
+        frame = Frame(self.main_container)
+        frame.pack(expand=True)
+        Button(frame, text="Back to Main", command=self.show_landing_page).pack()
 
-    Button(frame, text="Back to Main", command=lambda: show_landing_page(root, main_container)).pack()
-
-def show_suppliers(root, main_container):
-    """Placeholder function for Suppliers module."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
-
-    frame = Frame(main_container)
-    frame.pack(expand=True)
-
-    Button(frame, text="Back to Main", command=lambda: show_landing_page(root, main_container)).pack()
-
-def show_drawings(root, main_container):
-    """Placeholder function for Drawings module."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
-
-    frame = Frame(main_container)
-    frame.pack(expand=True)
-
-    Button(frame, text="Back to Main", command=lambda: show_landing_page(root, main_container)).pack()
-
-def show_images(root, main_container):
-    """Placeholder function for Images module."""
-    for widget in main_container.winfo_children():
-        widget.destroy()
-
-    frame = Frame(main_container)
-    frame.pack(expand=True)
-
-    Button(frame, text="Back to Main", command=lambda: show_landing_page(root, main_container)).pack()
+    def show_images(self):
+        """Loads the Images module dynamically."""
+        self.clear_main_container()
+        frame = Frame(self.main_container)
+        frame.pack(expand=True)
+        Button(frame, text="Back to Main", command=self.show_landing_page).pack()
 
 def main(test_mode=False):
     """Main function controlling UI and test execution."""
@@ -116,15 +100,7 @@ def main(test_mode=False):
         print("\n🔍 Running OOP Test...\n")
 
     root = Tk()
-    root.title("FarmBot Management")
-    root.geometry("1000x600")
-    root.resizable(True, True)
-
-    main_container = ScrollableFrame(root)
-    main_container.pack(fill="both", expand=True)
-
-    show_landing_page(root, main_container)
-
+    app = FarmBotApp(root)
     root.mainloop()
 
 if __name__ == "__main__":

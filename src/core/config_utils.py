@@ -25,23 +25,6 @@ def get_column_attribute_for_context(context, attribute):
         if attribute in col_props
     ]
 
-def get_primary_key(context):
-    """
-    Retrieves the primary key column name for a given context.
-
-    Args:
-        context (str): The context (e.g., "Assemblies", "Parts").
-
-    Returns:
-        str: The primary key column name, or None if not found.
-    """
-    from config.config_data import COLUMN_DEFINITIONS
-    columns = COLUMN_DEFINITIONS.get(context, {}).get("columns", {})
-    for column_name, details in columns.items():
-        if details.get("is_primary_key", False):
-            return column_name
-    return None  # No primary key found
-
 def get_visible_columns(context):
     """
     Returns a filtered view of COLUMN_DEFINITIONS, excluding admin fields.

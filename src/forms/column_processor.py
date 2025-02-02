@@ -1,5 +1,6 @@
-from config.config_data import COLUMN_DEFINITIONS
 import logging
+from config.config_data import COLUMN_DEFINITIONS, DEBUG
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -82,3 +83,32 @@ class ColumnProcessor:
 
         return processed_columns_list
 
+    @staticmethod
+    def get_editable_columns(context_name):
+        """
+        Fetches editable columns for a given context, excluding admin and primary keys.
+        """
+ 
+        # ✅ Access the updated COLUMN_DEFINITIONS dynamically
+        context_data = COLUMN_DEFINITIONS.get(context_name, {})
+
+        if not context_data:
+            logger.warning(f"❌ No context data found for '{context_name}'.")
+            return {}
+
+        columns = context_data.get("columns", {})
+
+        if not columns:
+            logger.warning(f"❌ No columns found for '{context_name}'.")
+            return {}
+
+        editable_columns = {
+            col_name: col_details
+            for col_name, col_details in columns.items()
+            if not col_details.get("admin", False) and not col_details.get("is_primary_key", False)
+        }
+
+        if DEBUG:
+            logger.debug(f"✅ Editable columns for '{context_name}': {editable_columns}")
+
+        return editable_columns

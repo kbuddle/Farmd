@@ -1,7 +1,7 @@
 # subject to redistribution within new filing structure.
 # subject to redistribution within new filing structure.
 
-from src.database.queries import DatabaseQueryExecutor
+from src.database.database_query_executor import DatabaseQueryExecutor
 
 class Item:
     """ Base class for all database entities (Assemblies, Parts, Suppliers). """

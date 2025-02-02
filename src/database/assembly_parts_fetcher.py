@@ -1,4 +1,4 @@
-from src.database.queries import DatabaseQueryExecutor
+from src.database.database_query_executor import DatabaseQueryExecutor
 from config.config_data import DATABASE_PATH
 
 class AssemblyPartsFetcher:

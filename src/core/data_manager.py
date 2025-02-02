@@ -1,4 +1,4 @@
-from src.database.transaction import DatabaseTransactionManager
+from src.database.database_transaction import DatabaseTransactionManager
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
 from src.database.query_generator import QueryGenerator
 

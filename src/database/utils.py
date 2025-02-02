@@ -3,7 +3,7 @@ import shutil
 from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox, ttk, StringVar
-from src.database.queries import DatabaseQueryExecutor
+from src.database.database_query_executor import DatabaseQueryExecutor
 from src.ui.ui_helpers import UIHelpers
 
 # Define paths

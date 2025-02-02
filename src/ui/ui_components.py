@@ -5,7 +5,7 @@
 import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
 from src.database.query_generator import QueryGenerator
-from src.database.queries import DatabaseQueryExecutor
+from src.database.database_query_executor import DatabaseQueryExecutor
 from config.config_data import DEBUG
 from src.core.view_management import get_processed_columns
 from src.models.item import Assembly, Part, Supplier  # Import CRUD models
@@ -38,7 +38,6 @@ class ScrollableFrame(ttk.Frame):
     def _update_scroll_region(self, event=None):
         """Update the scroll region when content changes."""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
 
 def create_datasheet_tab(parent, context_name, db_manager):
     """
@@ -90,7 +89,6 @@ def create_datasheet_tab(parent, context_name, db_manager):
 
     return tab_frame
 
-
 def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item, delete_item):
     """
     Creates a frame with buttons for CRUD operations.
@@ -116,7 +114,6 @@ def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item,
     create_button(f"Delete {context}", delete_item)
 
     return button_frame
-
 
 def create_datasheet_view(parent_widget, context_name, context_data, parent_frame=None, debug=False):
     """
@@ -425,3 +422,43 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
 
     return card_frame
 
+def create_assemblies_table(parent):
+    """
+    Creates the assemblies Treeview table inside a given parent frame.
+
+    Args:
+        parent (tk.Widget): Parent frame.
+
+    Returns:
+        tuple: (Frame, Treeview) containing the table UI elements.
+    """
+    table_frame = Frame(parent)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    treeview = ttk.Treeview(table_frame, columns=("ID", "Assembly Name"), show="headings", selectmode="browse")
+    treeview.heading("ID", text="ID")
+    treeview.heading("Assembly Name", text="Assembly Name")
+    treeview.pack(fill="both", expand=True)
+
+    return table_frame, treeview
+
+def create_entity_table(parent, context_name):
+    """
+    Creates a generic Treeview table for displaying entities.
+
+    Args:
+        parent (tk.Widget): Parent frame.
+        context_name (str): Entity type (e.g., "Parts", "Suppliers").
+
+    Returns:
+        tuple: (Frame, Treeview) containing the table UI elements.
+    """
+    table_frame = Frame(parent)
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    treeview = ttk.Treeview(table_frame, columns=("ID", f"{context_name} Name"), show="headings", selectmode="browse")
+    treeview.heading("ID", text="ID")
+    treeview.heading(f"{context_name} Name", text=f"{context_name} Name")
+    treeview.pack(fill="both", expand=True)
+
+    return table_frame, treeview

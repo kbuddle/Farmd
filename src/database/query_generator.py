@@ -1,6 +1,10 @@
  # Ensuring correct import path
 from config.config_data import COLUMN_DEFINITIONS
 import logging
+from config.config_data import DEBUG
+
+
+from src.database.database_query_executor import DatabaseQueryExecutor
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -11,7 +15,7 @@ class QueryGenerator:
     A class to generate SQL queries dynamically based on column definitions and context (e.g., Suppliers, Assemblies).
     """
 
-    def __init__(self, context_name, debug=False):
+    def __init__(self, context_name, database_manager, debug=False):
         """
         Initializes the QueryGenerator with the context name and retrieves column definitions.
 
@@ -19,30 +23,26 @@ class QueryGenerator:
             context_name (str): The name of the table or context.
             debug (bool): Whether to enable debug mode.
         """
-        from src.database.helpers import ColumnProcessor 
-        
+        from src.forms.column_processor import ColumnProcessor
+
         self.context_name = context_name
+        self.database_manager = database_manager
         self.debug = debug
 
-        # Proper instantiation of ColumnProcessor
-        self.column_processor = ColumnProcessor(context_name, exclude_hidden=True, debug=debug)
-
         # Retrieve processed columns from ColumnProcessor
-        self.processed_columns = self.column_processor.get_processed_column_definitions()
+        self.processed_columns = ColumnProcessor.get_editable_columns(self.context_name)
 
         if not isinstance(self.processed_columns, dict):
-            raise TypeError(f"'columns' for context '{context_name}' must be a dictionary, got {type(self.processed_columns)}")
+            raise TypeError(f"'columns' for context '{self.context_name}' must be a dictionary, got {type(self.processed_columns)}")
 
-        # Extract primary key
-        self.primary_key = next(
-            (col for col, details in self.processed_columns.items() if details.get("is_primary_key", False)),
-            None
-        )
-        if not self.primary_key:
-            raise ValueError(f"No primary key defined for context: {context_name}")
+        # ✅ Use DatabaseManager to retrieve the primary key
+        from src.database.database_manager import DatabaseManager
+        self.database_manager = DatabaseManager
+        
+        self.primary_key = self.database_manager.get_primary_key(self.context_name)
 
         if self.debug:
-            logger.debug(f"QueryGenerator initialized for {context_name}")
+            logger.debug(f"QueryGenerator initialized for {self.context_name}")
             logger.debug(f"Primary Key: {self.primary_key}")
             logger.debug(f"Processed Columns: {self.processed_columns}")
 
