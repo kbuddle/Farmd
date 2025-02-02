@@ -30,53 +30,50 @@ class UIHelpers:
         """ Asks user for confirmation and returns True/False. """
         return messagebox.askyesno(title, message)
 
-def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item, delete_item, table, build_assy=None):
-    
+
+def create_buttons_frame(parent_frame, context, on_add, on_edit, on_clone, on_delete, build_assy=None):
     """
-    Creates a frame with buttons for CRUD operations and other context-specific actions.
-    :param parent_frame: The parent frame to place the buttons in.
-    :param context: The context of the operations (e.g., "Assemblies").
-    :param add_item: Function to add a new item.
-    :param edit_item: Function to edit the selected item.
-    :param clone_item: Function to clone the selected item.
-    :param delete_item: Function to delete the selected item.
-    :param table: The Treeview widget.
-    :param build_assy: Optional function for context-specific operations (e.g., building assemblies).
+    Creates a reusable frame with CRUD operation buttons.
+
+    Args:
+        parent_frame (tk.Frame): Parent frame to place the buttons.
+        context (str): The entity type (e.g., "Assemblies", "Parts").
+        on_add (function): Function to handle item addition.
+        on_edit (function): Function to handle item editing.
+        on_clone (function): Function to handle item cloning.
+        on_delete (function): Function to handle item deletion.
+        build_assy (function, optional): Extra function (e.g., for building assemblies).
+
+    Returns:
+        tk.Frame: The frame containing all buttons.
     """
-    button_frame = Frame(parent_frame)
+
+    # ✅ Button container
+    button_frame = tk.Frame(parent_frame)
     button_frame.pack(fill="x", padx=10, pady=5)
 
-    def create_button(parent, text, command):    
-        """Creates a button with standardized padding and styles."""
-        return Button(parent, text=text, command=command).pack(side="left", padx=10, pady=10)   
+    def create_button(parent, text, command, bg="lightgray"):
+        """Creates and returns a button with uniform styling."""
+        btn = tk.Button(parent, text=text, command=command, bg=bg, fg="black", padx=10, pady=5)
+        btn.pack(side="left", padx=5, pady=5)
+        return btn
 
-    # Fetch queries once for reuse
-
+    # 🔹 Fetch queries outside of UI logic
     queries = query_generator(context)
-    print(f"Generated Queries for {context}: {queries}")
 
-    # Add common buttons
-    create_button(parent=button_frame, text=f"Add {context}", 
-        command=lambda: add_item(
-        context,
-        table,
-        insert_query = queries.get("insert_query"),
-        fetch_query = queries.get("fetch_query")))
+    # 🔹 Define button actions dynamically
+    btn_add = create_button(button_frame, f"Add {context}", lambda: on_add(context, queries["insert_query"], queries["fetch_query"]), bg="green")
+    btn_edit = create_button(button_frame, f"Edit {context}", lambda: on_edit(context, queries["fetch_query"], queries["update_query"]), bg="blue")
+    btn_clone = create_button(button_frame, f"Clone {context}", lambda: on_clone(context), bg="orange")
+    btn_delete = create_button(button_frame, f"Delete {context}", lambda: on_delete(context), bg="red")
 
-    create_button(parent=button_frame, text=f"Edit {context}",
-        command = lambda: edit_item(
-        context,
-        table,
-        fetch_query = queries.get("fetch_query"),
-        update_query = queries.get("update_query")))
-
-
-
-    create_button(f"Clone {context}", clone_item(context))
-    create_button(f"Delete {context}", delete_item(context))
-    
+    # 🔹 Optionally add a "Build Assembly" button if applicable
+    if build_assy:
+        create_button(button_frame, f"Build {context}", build_assy, bg="purple")
 
     return button_frame
+
+
 
 # Placeholder function for Add
 def placeholder_add(context, treeview, insert_query, fetch_query, foreign_key_value=None):

@@ -305,7 +305,7 @@ def create_datasheet_view(parent_widget, context_name, context_data, parent_fram
     from tkinter import Frame, Label, Button, ttk, messagebox
     from ui.ui_events import on_datasheet_selection
     from core.query_builder import query_generator
-    from src.database.database_utils import get_processed_column_definitions
+    from src.database.utils import get_processed_column_definitions
     
     if debug:
         print(f"Creating datasheet for context: {context_name}")
@@ -408,7 +408,4 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
         edit_button.grid(row=row_idx, column=0, pady=5, sticky="w")
 
     return card_frame
-
-
-
 
