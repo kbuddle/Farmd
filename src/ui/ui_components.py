@@ -4,7 +4,7 @@
 
 import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
-from src.database.query_generator import QueryGenerator
+from src.database.database_query_generator import QueryGenerator
 from src.database.database_query_executor import DatabaseQueryExecutor
 from config.config_data import DEBUG
 from src.core.view_management import get_processed_columns
@@ -380,7 +380,7 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
     """
     import os
     from config.config_data import VIEW_DEFINITIONS, DEBUG
-    from src.database.utils import get_assembly_image
+    from src.database.Database_utils import get_assembly_image
     from PIL import Image, ImageTk
 
     # Get the fields to display for the selected view

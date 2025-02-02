@@ -1,6 +1,6 @@
 import sqlite3
 from config.config_data import DATABASE_PATH
-from src.database.tracker import ConnectionTracker
+from src.database.connection_tracker import ConnectionTracker
 
 class DatabaseConnection:
     """ Singleton class to manage the database connection. """

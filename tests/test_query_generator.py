@@ -1,5 +1,5 @@
 import unittest
-from src.database.query_generator import QueryGenerator
+from src.database.database_query_generator import QueryGenerator
 
 class TestQueryGenerator(unittest.TestCase):
 

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from src.database.query_generator import QueryGenerator  # Ensure no circular imports
+from src.database.database_query_generator import QueryGenerator  # Ensure no circular imports
 
 class UIHelpers:
     """Handles UI notifications separately from database logic."""

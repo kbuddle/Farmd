@@ -1,6 +1,6 @@
 import sqlite3
 from config.config_data import DATABASE_PATH, DEBUG, COLUMN_DEFINITIONS
-from src.database.database_transaction import DatabaseTransactionManager
+from src.database.database_transaction_manager import DatabaseTransactionManager
 
 
 
@@ -36,7 +36,7 @@ class DatabaseManager:
     def add_item(self, context, data):
         """Inserts a new item into the database."""
         
-        from src.database.query_generator import QueryGenerator
+        from src.database.database_query_generator import QueryGenerator
         self.query_generator = QueryGenerator(self.db_path)
         queries = self.query_generator(context).get_all_queries()
         
@@ -72,5 +72,5 @@ class DatabaseManager:
 
     # ✅ Import inside methods to avoid circular dependency
     def get_query_generator(context_name):
-        from src.database.query_generator import QueryGenerator  # ✅ Local import
+        from src.database.database_query_generator import QueryGenerator  # ✅ Local import
         return QueryGenerator(context_name, self)

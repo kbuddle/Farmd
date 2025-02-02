@@ -1,7 +1,7 @@
 # Functions to generate SQL queries dynamically.
 import sqlite3
 
-from src.database.database_transaction import DatabaseTransactionManager
+from src.database.database_transaction_manager import DatabaseTransactionManager
 from tkinter import StringVar
 import logging
 

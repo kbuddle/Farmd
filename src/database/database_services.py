@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 from config.config_data import DATABASE_PATH, DEBUG, COLUMN_DEFINITIONS
-from src.database.database_transaction import DatabaseTransactionManager
+from src.database.database_transaction_manager import DatabaseTransactionManager
 from src.database.database_query_executor import DatabaseQueryExecutor
 from src.database.database_manager import DatabaseManager 
 
@@ -19,7 +19,7 @@ class DatabaseService:
         
     def add_item(self, context, data):
         """Inserts a new record into the database."""
-        from src.database.query_generator import QueryGenerator 
+        from src.database.database_query_generator import QueryGenerator 
         
         queries = QueryGenerator(context, self.database_manager).get_all_queries()
         primary_key = self.get_primary_key(context)
@@ -34,7 +34,7 @@ class DatabaseService:
 
     def update_item(self, context, item_id, updated_data):
         """Updates an existing record in the database."""
-        from src.database.query_generator import QueryGenerator 
+        from src.database.database_query_generator import QueryGenerator 
         
         queries = QueryGenerator(context, self.database_manager).get_all_queries()
         updated_data["id"] = item_id  # ✅ Ensure item ID is included
@@ -46,7 +46,7 @@ class DatabaseService:
 
     def clone_item(self, context, item_id):
         """Clones an existing record by duplicating its values."""
-        from src.database.query_generator import QueryGenerator 
+        from src.database.database_query_generator import QueryGenerator 
         
         queries = QueryGenerator(context, self.database_manager).get_all_queries()
 
@@ -64,7 +64,7 @@ class DatabaseService:
 
     def delete_item(self, context, item_id):
         """Deletes a record from the database."""
-        from src.database.query_generator import QueryGenerator 
+        from src.database.database_query_generator import QueryGenerator 
         
         queries = QueryGenerator(context, self.database_manager).get_all_queries()
         
@@ -75,7 +75,7 @@ class DatabaseService:
 
     def fetch_all(self, context):
         """Fetches all records from the database."""
-        from src.database.query_generator import QueryGenerator
+        from src.database.database_query_generator import QueryGenerator
         
         queries = QueryGenerator(context, self.database_manager).get_all_queries()
 
