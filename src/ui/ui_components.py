@@ -1,15 +1,15 @@
 # subject to redistribution within new filing structure.
-
+# Subject to redistribution within the new filing structure.
 # Reusable UI components (frames, buttons, modals).
 
 import tkinter as tk
-from tkinter import ttk, Frame, Label, Button
+from tkinter import ttk, Frame, Label, Button, messagebox
 from src.core.query_builder import query_generator
 from src.ui.shared_utils import populate_table, sort_table
-from src.database.operations import DatabaseOperations
 from src.database.queries import DatabaseQueryExecutor
 from config.config_data import DEBUG
 from src.core.view_management import get_processed_columns
+from src.models.item import Assembly, Part, Supplier  # Import CRUD models
 
 
 class ScrollableFrame(ttk.Frame):
@@ -18,7 +18,6 @@ class ScrollableFrame(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        # Create a canvas for scrolling
         self.canvas = tk.Canvas(self, borderwidth=0)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
@@ -27,7 +26,6 @@ class ScrollableFrame(ttk.Frame):
         self.h_scrollbar = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.canvas.configure(yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set)
 
-        # Pack elements
         self.v_scrollbar.pack(side="right", fill="y")
         self.h_scrollbar.pack(side="bottom", fill="x")
         self.canvas.pack(side="left", fill="both", expand=True)
@@ -42,54 +40,138 @@ class ScrollableFrame(ttk.Frame):
         """Update the scroll region when content changes."""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-def create_assemblies_table(parent_widget, debug=True):
+
+def create_datasheet_tab(parent, context_name, db_manager):
     """
-    Creates a table (Treeview) to display Assemblies.
-    
+    Creates a datasheet tab for a given entity (Assemblies, Parts, Suppliers).
+
     Args:
-        parent_widget (tk.Widget): Parent frame where the table is displayed.
-        debug (bool): Enables debug mode.
+        parent (tk.Widget): The parent widget (typically a tab container).
+        context_name (str): The entity type.
+        db_manager (DatabaseQueryExecutor): Database manager instance.
 
     Returns:
-        tuple: (Frame, Treeview)
+        tk.Frame: The created frame for the datasheet tab.
     """
-    table_frame = Frame(parent_widget, width=1500, height=600)
-    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    tab_frame = tk.Frame(parent)
+    tab_frame.pack(fill="both", expand=True)
 
-    # ✅ Fetch column definitions dynamically
-    column_definitions = get_processed_columns("Assemblies")
+    # ✅ Map entity class dynamically
+    entity_class_map = {
+        "Assemblies": Assembly,
+        "Parts": Part,
+        "Suppliers": Supplier
+    }
+    entity_class = entity_class_map.get(context_name)
 
-    column_definitions_dict= {col["name"]: col for col in column_definitions}
+    if not entity_class:
+        raise ValueError(f"Invalid context: {context_name}")
 
-    column_widths = {col["name"]: col.get("width", 150) for col in column_definitions}
-    if debug:
-        print(f"DEBUG: column_definitions in creating assemblies = {column_definitions}")
+    entity = entity_class(db_manager)  # Instantiate entity
 
-    # ✅ Extract column names, display names, and widths
-    processed_columns = list(column_definitions_dict.keys())
-    display_names = {col["name"]: col.get("display_name", col["name"]) for col in column_definitions}
-    column_widths = {col["name"]: col.get("width", 150) for col in column_definitions}  # Default to 150px if missing
+    # ✅ Define CRUD operations using Item methods
+    def add_item():
+        """Handles adding a new entity."""
+        entity.add({})  # TODO: Replace with real form data
 
-    # ✅ Create Treeview
-    treeview = ttk.Treeview(table_frame, columns=processed_columns, show="headings", selectmode="browse")
+    def edit_item():
+        """Handles editing an existing entity."""
+        entity.edit(1, {})  # TODO: Replace with selected item ID & form data
 
-    # ✅ Add scrollbars
+    def clone_item():
+        """Handles cloning an entity."""
+        entity.clone(1)  # TODO: Replace with selected item ID
+
+    def delete_item():
+        """Handles deleting an entity."""
+        entity.delete(1)  # TODO: Replace with selected item ID
+
+    # ✅ Add Buttons using `create_buttons_frame`
+    create_buttons_frame(tab_frame, context_name, add_item, edit_item, clone_item, delete_item)
+
+    return tab_frame
+
+
+def create_buttons_frame(parent_frame, context, add_item, edit_item, clone_item, delete_item):
+    """
+    Creates a frame with buttons for CRUD operations.
+
+    Args:
+        parent_frame (tk.Widget): The parent container for buttons.
+        context (str): The entity type (e.g., "Assemblies").
+        add_item (function): Function to add a new item.
+        edit_item (function): Function to edit the selected item.
+        clone_item (function): Function to clone an item.
+        delete_item (function): Function to delete an item.
+    """
+    button_frame = Frame(parent_frame)
+    button_frame.pack(fill="x", padx=10, pady=5)
+
+    # Create buttons dynamically
+    def create_button(text, command):
+        return Button(button_frame, text=text, command=command).pack(side="left", padx=10, pady=10)
+
+    create_button(f"Add {context}", add_item)
+    create_button(f"Edit {context}", edit_item)
+    create_button(f"Clone {context}", clone_item)
+    create_button(f"Delete {context}", delete_item)
+
+    return button_frame
+
+
+def create_datasheet_view(parent_widget, context_name, context_data, parent_frame=None, debug=False):
+    """
+    Creates a generic datasheet view that can be used in different layouts.
+
+    Args:
+        parent_widget (tk.Widget): The parent container where the datasheet is placed.
+        context_name (str): The entity type (e.g., "Assemblies", "Parts").
+        context_data (dict): Configuration for the datasheet.
+        parent_frame (tk.Frame, optional): The frame where entity details will be displayed.
+        debug (bool): Enables debug logging.
+
+    Returns:
+        tuple: (frame, treeview) - The created frame and the Treeview widget.
+    """
+    table_frame = Frame(parent_widget, width=1000, height=600)
+    table_frame.pack(fill="both", expand=False, padx=10, pady=10)
+
+    # Extract columns
+    processed_columns = get_processed_columns(context_data["columns"])
+    column_names = list(processed_columns.keys())
+
+    # Create Treeview
+    treeview = ttk.Treeview(table_frame, columns=column_names, show="headings", selectmode="browse")
+
+    # Add scrollbars
     v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=treeview.yview)
     h_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=treeview.xview)
     treeview.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
     v_scrollbar.pack(side="right", fill="y")
     h_scrollbar.pack(side="bottom", fill="x")
-    treeview.pack(side="left", fill="both", expand=True)
+    treeview.pack(side="left", fill="both", expand=False)
 
-    # ✅ Configure columns using correct width lookup
-    for col in processed_columns:
-        treeview.heading(col, text=display_names[col], command=lambda c=col: sort_table(treeview, c, None))
-        treeview.column(col, width=min(column_widths[col], 250), anchor="w", stretch=False)  # ✅ Prevent over-expansion
+    # Configure columns
+    for col, details in processed_columns.items():
+        treeview.heading(col, text=details.get("display_name", col), command=lambda c=col: sort_table(treeview, c))
+        treeview.column(col, width=details.get("width", 100), anchor="w", stretch=False)
 
-    # ✅ Fetch & populate data
-    fetch_query = "SELECT AssemblyID, AssemName, ProcurementType FROM Assemblies"
-    populate_table(treeview, fetch_query, debug=DEBUG)
+    # Fetch & populate data
+    queries = query_generator(context_name)
+    fetch_query = queries.get("fetch_query")
 
+    try:
+        populate_table(treeview, fetch_query)
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to load data for {context_name}.")
+        if DEBUG:
+            print(f"Error populating Treeview: {e}")
+
+    # ✅ Bind row selection dynamically if `parent_frame` is available
+    if parent_frame:
+        from ui.ui_events import on_datasheet_selection
+        treeview.bind("<<TreeviewSelect>>", lambda event: on_datasheet_selection(event, treeview, parent_frame, context_name))
+    
     return table_frame, treeview
 
 def create_available_parts_view(parent_widget, assembly_id, debug=DEBUG):
@@ -288,70 +370,6 @@ def create_assemblies_screen(parent_widget):
 
     return assemblies_table
 
-def create_datasheet_view(parent_widget, context_name, context_data, parent_frame=None, debug=False):
-    """
-    Creates a generic datasheet view that can be used in different layouts.
-    
-    Args:
-        parent_widget (tk.Widget): The parent container where the datasheet is placed.
-        context_name (str): The entity type (e.g., "Assemblies", "Parts").
-        context_data (dict): Configuration for the datasheet.
-        parent_frame (tk.Frame, optional): The frame where entity details will be displayed.
-        debug (bool): Enables debug logging.
-    
-    Returns:
-        tuple: (frame, treeview) - The created frame and the Treeview widget.
-    """
-    from tkinter import Frame, Label, Button, ttk, messagebox
-    from ui.ui_events import on_datasheet_selection
-    from core.query_builder import query_generator
-    from src.database.utils import get_processed_column_definitions
-    
-    if debug:
-        print(f"Creating datasheet for context: {context_name}")
-
-    table_frame = Frame(parent_widget, width=1000, height =600)
-    table_frame.pack(fill="both", expand=False, padx=10, pady=10)
-
-    # Extract columns
-    processed_columns = get_processed_column_definitions(context_data["columns"], exclude_hidden=True)
-    column_names = list(processed_columns.keys())
-
-    # Create Treeview
-    treeview = ttk.Treeview(table_frame, columns=column_names, show="headings", selectmode="browse")
-
-    # Add scrollbars
-    v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=treeview.yview)
-    h_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=treeview.xview)
-    treeview.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-    v_scrollbar.pack(side="right", fill="y")
-    h_scrollbar.pack(side="bottom", fill="x")
-    treeview.pack(side="left", fill="both", expand=False)
-
-    # Configure columns
-    for col, details in processed_columns.items():
-        treeview.heading(col, text=details.get("display_name", col), command=lambda c=col: sort_table(treeview, c, fetch_query))
-        treeview.column(col, width=details.get("width", 100), anchor="w", stretch=False)
-
-    queries = query_generator(context_name)
-    fetch_query = queries.get("fetch_query", None)
-
-    if debug:
-        print(f" here is what populate table is being called with for fetch_query, {fetch_query}")
-    # Populate table
-    try:
-        populate_table(treeview, fetch_query)
-    except Exception as e:
-        messagebox.showerror("Error", f"Failed to load data for {context_name}.")
-        if DEBUG:
-            print(f"Error populating Treeview: {e}")
-
-    # ✅ Bind row selection dynamically if `parent_frame` is available
-    if parent_frame:
-        treeview.bind("<<TreeviewSelect>>", lambda event: on_datasheet_selection(event, treeview, parent_frame, context_name))
-    
-    return table_frame, treeview
-
 def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_callback=None, debug=DEBUG):
     """
     Creates a card-style frame dynamically based on VIEW_DEFINITIONS.
@@ -367,7 +385,7 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
     """
     import os
     from config.config_data import VIEW_DEFINITIONS, DEBUG
-    from src.database.database_utils import get_assembly_image
+    from src.database.utils import get_assembly_image
     from PIL import Image, ImageTk
 
     # Get the fields to display for the selected view

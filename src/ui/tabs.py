@@ -1,6 +1,8 @@
 import tkinter as tk
-from src.models.item import Assembly, Part, Supplier
+from tkinter import ttk
+from src.models.item import Assembly, Part, Supplier  # ✅ Import subclasses
 from ui.ui_helpers import create_buttons_frame
+from ui.ui_components import create_datasheet_view
 
 def create_datasheet_tab(parent, context_name, db_manager):
     """
@@ -18,32 +20,54 @@ def create_datasheet_tab(parent, context_name, db_manager):
     tab_frame = tk.Frame(parent)
     tab_frame.pack(fill="both", expand=True)
 
-    # ✅ Get correct entity class dynamically
+    # ✅ Dynamically determine the correct entity class
     entity_class = {
         "Assemblies": Assembly,
         "Parts": Part,
         "Suppliers": Supplier
-    }.get(context_name, None)
+    }.get(context_name)
 
     if not entity_class:
         raise ValueError(f"Invalid context: {context_name}")
 
-    entity = entity_class(db_manager)  # ✅ Instantiate entity
+    entity = entity_class(db_manager)  # ✅ Instantiate the class
+
+    # ✅ Create the datasheet view
+    table_frame, treeview = create_datasheet_view(tab_frame, context_name, entity)
 
     # ✅ Define CRUD operations using Item methods
-    def add_item(context, insert_query, fetch_query):
+    def add_item():
+        """ Calls the add method for the entity. """
         entity.add({})  # TODO: Replace with real form data
 
-    def edit_item(context, fetch_query, update_query):
-        entity.edit(1, {})  # TODO: Replace with selected item ID & form data
+    def edit_item():
+        """ Calls the edit method for the entity. """
+        selected_item = treeview.selection()
+        if not selected_item:
+            print("No item selected for editing.")
+            return
+        item_id = treeview.set(selected_item, "ID")  # Assumes "ID" is the primary key column
+        entity.edit(item_id, {})  # TODO: Replace with real form data
 
-    def clone_item(context):
-        entity.clone(1)  # TODO: Replace with selected item ID
+    def clone_item():
+        """ Calls the clone method for the entity. """
+        selected_item = treeview.selection()
+        if not selected_item:
+            print("No item selected for cloning.")
+            return
+        item_id = treeview.set(selected_item, "ID")
+        entity.clone(item_id)
 
-    def delete_item(context):
-        entity.delete(1)  # TODO: Replace with selected item ID
+    def delete_item():
+        """ Calls the delete method for the entity. """
+        selected_item = treeview.selection()
+        if not selected_item:
+            print("No item selected for deletion.")
+            return
+        item_id = treeview.set(selected_item, "ID")
+        entity.delete(item_id)
 
-    # ✅ Add Buttons using our refactored `create_buttons_frame`
-    create_buttons_frame(tab_frame, context_name, add_item, edit_item, clone_item, delete_item)
+    # ✅ Create buttons and pass class methods
+    create_buttons_frame(tab_frame, context_name, add_item, edit_item, clone_item, delete_item, treeview)
 
     return tab_frame
