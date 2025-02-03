@@ -1,9 +1,9 @@
 import logging
-from src.database.database_services import DatabaseService
+from src.database.database_service import DatabaseService
 from src.database.database_manager import DatabaseManager
 from src.ui.datasheet_ui import DatasheetUI
 from src.database.datasheet_manager import DatasheetManager
-
+from config.config_data import DATABASE_PATH
 class ServiceContainer:
     """Centralized container to manage service dependencies."""
 
@@ -11,7 +11,7 @@ class ServiceContainer:
         
         # Initialize core services
         self.database_manager = DatabaseManager()  
-        self.database_service = DatabaseService(self.database_manager)  
+        self.database_service = DatabaseService(DATABASE_PATH)  
 
     def get_datasheet_manager(self, context_name):
         """Returns an instance of DatasheetManager for a specific context."""

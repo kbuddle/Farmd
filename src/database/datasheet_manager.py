@@ -1,4 +1,4 @@
-from src.database.database_services import DatabaseService
+from src.database.database_service import DatabaseService
 class DatasheetManager:
     """Handles data processing for datasheets."""
 

@@ -11,12 +11,6 @@ class DatabaseOperations:
         """Creates a database connection."""
         return sqlite3.connect(self.db_path)
 
-    def fetch_all(self, table_name):
-        """Fetches all items from the table."""
-        query = f"SELECT * FROM {table_name}"
-        with self._connect() as conn:
-            return conn.execute(query).fetchall()
-
     def add_item(self, table_name, data):
         """Inserts an item into the specified table."""
         try:

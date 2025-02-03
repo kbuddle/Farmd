@@ -12,7 +12,7 @@ class DatabaseQueryExecutor:
     def __init__(self, database_manager):
         self.database_manager = database_manager
         self.connection = self.database_manager.get_connection() 
-        self.cursor = self.connection.cursor()
+      
 
     def execute_query(self, query, params=None, commit=True):
         try:
