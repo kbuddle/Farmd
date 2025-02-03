@@ -1,76 +1,66 @@
 import sqlite3
-from config.config_data import DATABASE_PATH, DEBUG, COLUMN_DEFINITIONS
-from src.database.database_transaction_manager import DatabaseTransactionManager
-
-
+import logging
+from config.config_data import DATABASE_PATH, COLUMN_DEFINITIONS
 
 class DatabaseManager:
-    """Manages all database operations (CRUD) in an OOP approach."""
+    """
+    Centralized manager for database connections, transactions, and query execution.
+    """
+    _instance = None
 
-    def __init__(self, db_path=DATABASE_PATH):
-        """Initializes the database manager with a connection and executor."""
-        
-        self.transaction_manager = DatabaseTransactionManager(db_path)
-        
-    def get_primary_key(context):
+    def __new__(cls, db_path=DATABASE_PATH):
+        if cls._instance is None:
+            cls._instance = super(DatabaseManager, cls).__new__(cls)
+            cls._instance._init(db_path)
+        return cls._instance
+
+    def _init(self, db_path):
+        self.db_path = db_path
+        self.connection = sqlite3.connect(self.db_path)
+        self.connection.row_factory = sqlite3.Row
+        self.cursor = self.connection.cursor()
+        self.logger = logging.getLogger(__name__)
+
+    def execute_query(self, query, params=None, commit=True):
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+
+            if commit:
+                self.connection.commit()
+            return self.cursor.fetchall()
+        except sqlite3.Error as e:
+            self.connection.rollback()
+            self.logger.error(f"Database error: {e}")
+            raise
+
+    def begin_transaction(self):
+        """Starts a transaction."""
+        self.connection.execute("BEGIN TRANSACTION;")
+        self.logger.debug("Transaction started.")
+
+    def commit_transaction(self):
+        """Commits the active transaction."""
+        self.connection.commit()
+        self.logger.debug("Transaction committed.")
+
+    def rollback_transaction(self):
+        """Rolls back the active transaction."""
+        self.connection.rollback()
+        self.logger.debug("Transaction rolled back.")
+
+    def close(self):
+        """Closes the database connection."""
+        self.cursor.close()
+        self.connection.close()
+        DatabaseManager._instance = None
+
+    def get_primary_key(self, context):
         """Retrieves the primary key column for a given table context."""
-        from config.config_data import COLUMN_DEFINITIONS
-        
         column_definitions = COLUMN_DEFINITIONS.get(context, {}).get("columns", {})
-        
         primary_key = next((col for col, details in column_definitions.items() if details.get("is_primary_key", False)), None)
-
         if not primary_key:
-            raise ValueError(f"No primary key defined for context: {context}")
-
+            self.logger.warning(f"⚠️ No primary key defined for context: {context}")
         return primary_key
-    
-    def get_connection(self):
-        """Returns the active database connection."""
-        return self.transaction_manager.get_connection()  # ✅ Use transaction manager for connection
-
-    def get_cursor(self):
-        """Returns the active database cursor."""
-        return self.transaction_manager.get_cursor()  # ✅ Use transaction manager for cursor
-    
-    def add_item(self, context, data):
-        """Inserts a new item into the database."""
-        
-        from src.database.database_query_generator import QueryGenerator
-        self.query_generator = QueryGenerator(self.db_path)
-        queries = self.query_generator(context).get_all_queries()
-        
-        primary_key = self.get_primary_key(context)
-
-        # Remove primary key from insert data
-        insert_data = {k: v for k, v in data.items() if k != primary_key}
-
-        if DEBUG:
-            print(f"Executing Insert: {queries['insert_query']} with {insert_data}")
-
-        return self.db_executor.execute_query(queries["insert_query"], insert_data)
-
-    def update_item(self, context, data):
-        """Updates an existing item in the database."""
-        queries = self.query_generator(context).get_all_queries()
-
-        if DEBUG:
-            print(f"Executing Update: {queries['update_query']} with {data}")
-
-        return self.db_executor.execute_query(queries["update_query"], data)
-
-    def delete_item(self, context, item_id):
-        """Deletes an item from the database."""
-        queries = self.query_generator(context).get_all_queries()
-
-        if DEBUG:
-            print(f"Executing Delete: {queries['delete_query']} with ID={item_id}")
-
-        return self.db_executor.execute_query(queries["delete_query"], {"id": item_id})
-
-
-
-    # ✅ Import inside methods to avoid circular dependency
-    def get_query_generator(context_name):
-        from src.database.database_query_generator import QueryGenerator  # ✅ Local import
-        return QueryGenerator(context_name, self)

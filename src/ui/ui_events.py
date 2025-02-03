@@ -5,9 +5,7 @@ from src.ui.ui_components import create_card_frame, create_assigned_parts_table,
 
 from src.models.assembly import Assembly
 from src.models.part import Part
-from src.database.database_transaction_manager import DatabaseTransactionManager
-from src.database.database_operations import DatabaseOperations
-
+from src.database.database_manager import DatabaseManager
 from src.models.assembly import Assembly  # ✅ Import Assembly class
 
 def on_assembly_selection(event, table, card_frame, parts_container):

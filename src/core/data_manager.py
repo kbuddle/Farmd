@@ -1,6 +1,6 @@
-from src.database.database_transaction_manager import DatabaseTransactionManager
+from src.database.database_manager import DatabaseManager
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
-from src.database.database_query_generator import QueryGenerator
+from src.database.query_generator import QueryGenerator
 
 class DataManager:
     """Handles database save operations for adding and editing records."""
@@ -12,7 +12,7 @@ class DataManager:
         Args:
             db_path (str): The path to the database file.
         """
-        self.db_query_executor = DatabaseTransactionManager()  # ✅ Instantiate the missing executor
+        self.db_query_executor = DatabaseManager()  # ✅ Instantiate the missing executor
         self.query_generator = QueryGenerator
 
     def save_data(self, context, data, is_add):

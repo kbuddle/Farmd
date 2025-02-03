@@ -1,8 +1,8 @@
 # subject to redistribution within new filing structure.
 
 from config.config_data import DATABASE_PATH
-from src.models.item import Item  # ✅ Corrected import
-from src.database.database_query_executor import DatabaseQueryExecutor
+from src.models.item import Item 
+from src.database.database_manager import DatabaseManager
 
 
 class Part(Item):
@@ -16,12 +16,13 @@ class Part(Item):
         """
         super().__init__(part_id, name)
         self.procurement_type = procurement_type
-        self.procurement_type = procurement_type if procurement_type else "Purchase"  # ✅ Ensure it is always set
+        self.procurement_type = procurement_type if procurement_type else "Purchase"
 
     @classmethod
     def fetch_from_db(cls, part_id):
         """Fetch a part using DatabaseTransactionManagement."""
         query = "SELECT PartID, PartName, ProcurementType FROM Parts WHERE PartID = ?"
+        db_manager=DatabaseManager()
         result = db_manager.execute_query(query, (part_id,))
 
         if result:
@@ -31,15 +32,16 @@ class Part(Item):
     def save_to_db(self):
         """Save or update a Part using DatabaseTransactionManagement."""
         check_query = "SELECT COUNT(*) as count FROM Parts WHERE PartID = ?"
+        db_manager = DatabaseManager()
         result = db_manager.execute_query(check_query, (self.item_id,))
 
         if result and result[0]["count"] > 0:
             update_query = """
                 UPDATE Parts SET PartName = ?, ProcurementType = ? WHERE PartID = ?
             """
-            db_manager.execute_non_query(update_query, (self.name, self.procurement_type, self.item_id), commit=True)
+            db_manager.execute_query(update_query, (self.name, self.procurement_type, self.item_id), commit=True)
         else:
             insert_query = """
                 INSERT INTO Parts (PartID, PartName, ProcurementType) VALUES (?, ?, ?)
             """
-            db_manager.execute_non_query(insert_query, (self.item_id, self.name, self.procurement_type), commit=True)
+            db_manager.execute_query(insert_query, (self.item_id, self.name, self.procurement_type), commit=True)

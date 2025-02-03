@@ -5,8 +5,8 @@ import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
 
 from config.config_data import DEBUG
-from core.view_management import get_processed_columns
-from models.item import Assembly, Part, Supplier  # Import CRUD models`
+from src.core.view_management import get_processed_columns
+from src.models.item import Assembly, Part, Supplier  # Import CRUD models`
 
 
 class ScrollableFrame(ttk.LabelFrame):  # Change from ttk.Frame to ttk.LabelFrame
@@ -44,8 +44,8 @@ def create_datasheet_tab(parent, context_name, db_manager):
     Returns:
         tk.Frame: The created frame for the datasheet tab.
     """
-    from src.database.database_query_generator import DatabaseQueryGenerator   
-    from src.database.database_query_executor import DatabaseQueryExecutor
+    from src.database.query_generator import DatabaseQueryGenerator   
+    from src.database.database_manager import DatabaseManager
     tab_frame = tk.Frame(parent)
     tab_frame.pack(fill="both", expand=True)
 

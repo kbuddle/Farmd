@@ -1,5 +1,4 @@
-from src.database.database_query_executor import DatabaseQueryExecutor
-from src.database.database_transaction_manager import DatabaseTransactionManager
+from src.database.database_manager import DatabaseManager
 
 class TableManager:
     """

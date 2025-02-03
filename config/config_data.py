@@ -117,15 +117,16 @@ CONTEXTS ={
 VIEW_DEFINITION = {
     "PartsForm": {
         "title": "Parts Management",
-        "geometry": "900x600",
+        "geometry": "900x800",
         "parts_tree": {
-            "columns": ["PartName", "ManPartNum", "Model", "Make", "Dimensions"],
-            "headings": {
+            "columns": ["PartName", "ManPartNum", "Model", "Make", "Dimensions", "PartMaterial"],
+            "headings": { #Headings sets the order of table
                 "PartName": "Part Name",
                 "ManPartNum": "Part Number",
                 "Model": "Model",
                 "Make": "Make",
-                "Dimensions": "Dimensions"
+                "Dimensions": "Dimensions",
+                "PartMaterial": "Part Material"
             },
             "show": "headings",
             "bind_event": "<ButtonRelease-1>"
@@ -134,19 +135,168 @@ VIEW_DEFINITION = {
             "text": "Part Details"
         },
         "fields": {
-            "PartName": {"label": "Part Name", "width": 60},
-            "ManPartNum": {"label": "Part Number", "width": 150},
+            "PartName": {"label": "Part Name", "width": 100},
             "Model": {"label": "Model", "width": 130},
             "Make": {"label": "Make", "width": 130},
-            "Dimensions": {"label": "Dimensions", "width": 200}
+            "Dimensions": {"label": "Dimensions", "width": 200},
+            "PartMaterial": {"label": "Material", "width": 100},
+            "ManPartNum": {"label": "Part Number", "width": 150},
         },
         "button_frame": {
             "buttons": {
-                "Save": "save_part",
-                "Clone": "clone_part",
-                "Delete": "delete_part",
-                "Cancel": "clear_form"
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
             }
         }
-    }
+    },
+    "DrawingsForm": {
+        "title": "Drawings Management",
+        "geometry": "900x800",
+        "drawings_tree": {
+            "columns": ["DrawingName", "DrawingPath", "Type", "Date", "Size", "Status", "Revision"],
+            "headings": {
+                "DrawingName": "Drawing Name",
+                "DrawingPath": "Drawing Path",
+                "Type": "Type",
+                "Date": "Date",
+                "Size": "Size",
+                "Status": "Status",
+                "Revision": "Revision"
+            },
+            "show": "headings",
+            "bind_event": "<ButtonRelease-1>"
+        },
+        "detail_frame": {
+            "text": "Drawing Details"
+        },
+        "fields": {
+            "DrawingName": {"label": "Drawing Name", "width": 100},
+            "DrawingPath": {"label": "Drawing Path", "width": 130},
+            "Type": {"label": "Type", "width": 130},
+            "Date": {"label": "Date", "width": 200},
+            "Size": {"label": "Size", "width": 100},
+            "Status": {"label": "Status", "width": 150},
+            "Revision": {"label": "Revision", "width": 150}
+        },
+        "button_frame": {
+            "buttons": {
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
+            }
+        }
+    },
+    "ImagesForm": { #✅ New form definition for Images
+        "title": "Images Management",
+        "geometry": "900x800",
+        "images_tree": {
+            "columns": ["ImageFileName"],
+            "headings": {
+                "ImageFileName": "File Name"
+            },
+            "show": "headings",
+            "bind_event": "<ButtonRelease-1>"
+        },
+        "detail_frame": {
+            "text": "Image Details"
+        },
+        "fields": {
+            "ImageFileName": {"label": "File Name", "width": 100},
+        },
+        "button_frame": {
+            "buttons": {
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
+            }
+        }
+    },
+    "SuppliersForm": {
+        "title": "Suppliers Management",
+        "geometry": "900x800",
+        "suppliers_tree": {
+            "columns": ["SupplierName", "PricePerUnit", "PartID", "UnitOfOrder", "WebRef", "Manuf", "ManPartNum"],  # ✅ Updated columns
+            "headings": {
+                "SupplierName": "Supplier Name",
+                "PricePerUnit": "Price/Unit",
+                "PartID": "Part ID",
+                "UnitOfOrder": "Unit of Order",
+                "WebRef": "Web URL",
+                "Manuf": "Manufacturer",
+                "ManPartNum": "Manufacturer Part Number"    
+            },    
+            "show": "headings", 
+            "bind_event": "<ButtonRelease-1>"
+        },  
+        "detail_frame": {
+            "text": "Supplier Details"
+        },
+        "fields": {
+            "SupplierName": {"label": "Supplier Name", "width": 100},
+            "PricePerUnit": {"label": "Price/Unit", "width": 130},
+            "PartID": {"label": "Part ID", "width": 130},
+            "UnitOfOrder": {"label": "Unit of Order", "width": 200},
+            "WebRef": {"label": "Web URL", "width": 100},
+            "Manuf": {"label": "Manufacturer", "width": 150},
+            "ManPartNum": {"label": "Manufacturer Part Number", "width": 150}
+        },
+        "button_frame": {
+            "buttons": {
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
+            }
+        }
+    },"AssembliesForm": {
+        "title": "Assemblies Management",
+        "geometry": "900x800",
+        "assembly_tree": {
+            "columns": ["AssemName", "AssemFocus", "ProcurementType", "AssemStatus", "AssemDwgID", "AssemImageRef", "AssemCost", "AssemWeight", "AssemHoursParts", "AssemHoursAssembly", "AssemTotalHours"],
+            "headings": { #Headings sets the order of table
+                "AssemName": "Assembly Name",
+                "AssemFocus": "Focus",
+                "ProcurementType": "Procurement Type",
+                "AssemStatus": "Status",
+                "AssemDwgID": "Drawing ID",
+                "AssemImageRef": "Image Reference",
+                "AssemCost": "Cost",
+                "AssemWeight": "Weight",
+                "AssemHoursParts": "Hours (Parts)",
+                "AssemHoursAssembly": "Hours (Assembly)",
+                "AssemTotalHours": "Total Hours"
+            },
+            "show": "headings",
+            "bind_event": "<ButtonRelease-1>"
+        },
+        "detail_frame": {
+            "text": "Assembly Details"
+        },
+        "fields": {
+            "AssemName": {"label": "Assembly Name", "width": 100},
+            "AssemFocus": {"label": "Focus", "width": 130},
+            "ProcurementType": {"label": "Procurement Type", "width": 130},
+            "AssemStatus": {"label": "Status", "width": 200},
+            "AssemDwgID": {"label": "Drawing ID", "width": 100},
+            "AssemImageRef": {"label": "Image Reference", "width": 150},
+            "AssemCost": {"label": "Cost", "width": 100},
+            "AssemWeight": {"label": "Weight", "width": 100},
+            "AssemHoursParts": {"label": "Hours (Parts)", "width": 100},
+            "AssemHoursAssembly": {"label": "Hours (Assembly)", "width": 100},
+            "AssemTotalHours": {"label": "Total Hours", "width": 100}
+        },
+        "button_frame": {
+            "buttons": {
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
+            }
+        }
+    },
+
 }
