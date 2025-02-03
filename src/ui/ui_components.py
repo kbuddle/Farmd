@@ -457,3 +457,5 @@ def create_entity_table(parent, context_name):
     treeview.pack(fill="both", expand=True)
 
     return table_frame, treeview
+
+

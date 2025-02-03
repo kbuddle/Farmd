@@ -11,7 +11,7 @@ from tkinter import Tk, Frame, Button
 
 from src.core.service_container import ServiceContainer
 from src.ui.assemblies_screen import AssembliesScreen
-from config.config_data import DEBUG, VIEW_DEFINITION
+from config.config_data import DEBUG, VIEW_DEFINITIONS
 from src.ui.entity_screen import EntityScreen
 from src.database.database_manager import DatabaseManager
 from src.forms.parts_form import PartsForm
@@ -54,51 +54,78 @@ class MainApplication(tk.Tk):
 
     def show_assemblies(self):
         """Loads the Assemblies module dynamically."""
+        from src.database.database_service import DatabaseService
+        from config.config_data import DATABASE_PATH, VIEW_DEFINITIONS
+        db_path = DATABASE_PATH
+        db_service = DatabaseService(db_path)
         self.clear_main_container()
-        AssembliesScreen(self.main_container, self.show_landing_page)
+        data_manager = db_service.fetch_all("Assemblies")
+        
+        tree_view_def = VIEW_DEFINITIONS["AssembliesFormA2"]  # ✅ Treeview should use P2
+        detail_view_def = VIEW_DEFINITIONS["AssembliesFormA1"]  # ✅ Detail frame should use P1
+
+        assemblies_window = EntityForm(self.main_container, "Assemblies", tree_view_def, detail_view_def, db_service, self)
+ 
+        assemblies_window.pack(fill=tk.BOTH, expand=True)
 
     def show_parts(self):
         """Loads the Parts module dynamically."""
         from src.database.database_service import DatabaseService
-        from config.config_data import DATABASE_PATH
+        from config.config_data import DATABASE_PATH, VIEW_DEFINITIONS
         db_path = DATABASE_PATH
         db_service = DatabaseService(db_path)
         self.clear_main_container()
         data_manager = db_service.fetch_all("Parts")
-        parts_window = EntityForm(self.main_container, "Parts", VIEW_DEFINITION["PartsForm"], db_service, self)
+        tree_view_def = VIEW_DEFINITIONS["PartsFormP2"]  # ✅ Treeview should use P2
+        detail_view_def = VIEW_DEFINITIONS["PartsFormP1"]  # ✅ Detail frame should use P1
+
+        parts_window = EntityForm(self.main_container, "Parts", tree_view_def, detail_view_def, db_service, self)
         parts_window.pack(fill=tk.BOTH, expand=True)
         
     def show_suppliers(self):
         """Loads the Suppliers module dynamically."""
         from src.database.database_service import DatabaseService
-        from config.config_data import DATABASE_PATH
+        from config.config_data import DATABASE_PATH, VIEW_DEFINITIONS
         db_path = DATABASE_PATH
         db_service = DatabaseService(db_path)
         self.clear_main_container()
         data_manager = db_service.fetch_all("Suppliers")
-        suppliers_window = EntityForm(self.main_container, "Suppliers", VIEW_DEFINITION["SuppliersForm"], db_service, self)
+        tree_view_def = VIEW_DEFINITIONS["SuppliersFormS2"]  # ✅ Treeview should use P2
+        detail_view_def = VIEW_DEFINITIONS["SuppliersFormS1"]  # ✅ Detail frame should use P1
+
+        suppliers_window = EntityForm(self.main_container, "Suppliers", tree_view_def, detail_view_def, db_service, self)
         suppliers_window.pack(fill=tk.BOTH, expand=True)
 
     def show_drawings(self):
         """Loads the Parts module dynamically."""
         from src.database.database_service import DatabaseService
-        from config.config_data import DATABASE_PATH
+        from config.config_data import DATABASE_PATH, VIEW_DEFINITIONS
         db_path = DATABASE_PATH
         db_service = DatabaseService(db_path)
         self.clear_main_container()
         data_manager = db_service.fetch_all("Drawings")
-        drawings_window = EntityForm(self.main_container, "Drawings", VIEW_DEFINITION["DrawingsForm"], db_service, self)
+        
+        tree_view_def = VIEW_DEFINITIONS["DrawingsFormD2"]  # ✅ Treeview should use P2
+        detail_view_def = VIEW_DEFINITIONS["DrawingsFormD1"]  # ✅ Detail frame should use P1
+
+        drawings_window = EntityForm(self.main_container, "Drawings", tree_view_def, detail_view_def, db_service, self)
+
         drawings_window.pack(fill=tk.BOTH, expand=True)
 
     def show_images(self):
         """Loads the Images module dynamically."""
         from src.database.database_service import DatabaseService
-        from config.config_data import DATABASE_PATH
+        from config.config_data import DATABASE_PATH, VIEW_DEFINITIONS
         db_path = DATABASE_PATH
         db_service = DatabaseService(db_path)
         self.clear_main_container()
         data_manager = db_service.fetch_all("Images")
-        images_window = EntityForm(self.main_container, "Images", VIEW_DEFINITION["ImagesForm"], db_service, self)
+
+        tree_view_def = VIEW_DEFINITIONS["ImagesFormI2"]  # ✅ Treeview should use P2
+        detail_view_def = VIEW_DEFINITIONS["ImagesFormI1"]  # ✅ Detail frame should use P1
+
+        images_window = EntityForm(self.main_container, "Images", tree_view_def, detail_view_def, db_service, self)
+
         images_window.pack(fill=tk.BOTH, expand=True)
 
 if __name__ == "__main__":
