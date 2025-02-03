@@ -10,11 +10,11 @@ from tkinter import Tk, Frame, Button
 from ui.ui_components import ScrollableFrame
 from ui.ui_events import on_assembly_selection
 from core.service_container import ServiceContainer
-from ui.assemblies_screen import AssembliesScreen
+from src.ui.assemblies_screen import AssembliesScreen
 from config.config_data import DEBUG, VIEW_DEFINITION
-from ui.entity_screen import EntityScreen
-from database.data_manager import DataManager
-from forms.parts_form import PartsForm
+from src.ui.entity_screen import EntityScreen
+from src.database.data_manager import DataManager
+from src.forms.parts_form import PartsForm
 
 
 

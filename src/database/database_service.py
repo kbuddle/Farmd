@@ -29,6 +29,11 @@ class DatabaseService:
         delete_query, params = query_generator.generate_delete_query(item_id)
         self.query_executor.execute_query(delete_query, params)
 
+    def fetch_all(self, context):
+        """Fetch all records from a given table."""
+        query = f"SELECT * FROM {context}"
+        return self.query_executor.fetch_all(query)
+
     def get_primary_key(self, context):
         """Retrieves the primary key column for a given table context."""
         column_definitions = COLUMN_DEFINITIONS.get(context, {}).get("columns", {})

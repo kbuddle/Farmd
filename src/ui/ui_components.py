@@ -1,17 +1,16 @@
-# Subject to redistribution within the new filing structure.
+
 # Reusable UI components (frames, buttons, modals).
 
 import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
-from src.database.database_query_generator import DatabaseQueryGenerator   
-from src.database.database_query_executor import DatabaseQueryExecutor
+
 from config.config_data import DEBUG
-from src.core.view_management import get_processed_columns
-from src.models.item import Assembly, Part, Supplier  # Import CRUD models
-from src.ui.shared_utils import sort_table, populate_table
+from core.view_management import get_processed_columns
+from models.item import Assembly, Part, Supplier  # Import CRUD models`
+
 
 class ScrollableFrame(ttk.LabelFrame):  # Change from ttk.Frame to ttk.LabelFrame
-    def __init__(self, parent, text=None, *args, **kwargs):
+    def __init__(self, parent, text=None, *args, **kwargs): 
         super().__init__(parent, text=text, *args, **kwargs)  # Pass text to LabelFrame
 
         self.canvas = tk.Canvas(self)
@@ -45,10 +44,12 @@ def create_datasheet_tab(parent, context_name, db_manager):
     Returns:
         tk.Frame: The created frame for the datasheet tab.
     """
+    from src.database.database_query_generator import DatabaseQueryGenerator   
+    from src.database.database_query_executor import DatabaseQueryExecutor
     tab_frame = tk.Frame(parent)
     tab_frame.pack(fill="both", expand=True)
 
-    # Map entity class dynamically
+    # ✅ Map entity class dynamically
     entity_class_map = {
         "Assemblies": Assembly,
         "Parts": Part,
@@ -61,7 +62,7 @@ def create_datasheet_tab(parent, context_name, db_manager):
 
     entity = entity_class(db_manager)  # Instantiate entity
 
-    # Define CRUD operations using Item methods
+    # ✅ Define CRUD operations using Item methods
     def add_item():
         """Handles adding a new entity."""
         entity.add({})  # TODO: Replace with real form data
@@ -78,7 +79,7 @@ def create_datasheet_tab(parent, context_name, db_manager):
         """Handles deleting an entity."""
         entity.delete(1)  # TODO: Replace with selected item ID
 
-    # Add Buttons using `create_buttons_frame`
+    # ✅ Add Buttons using `create_buttons_frame`
     create_buttons_frame(tab_frame, context_name, add_item, edit_item, clone_item, delete_item)
 
     return tab_frame
@@ -147,19 +148,19 @@ def create_datasheet_view(parent_widget, context_name, context_data, parent_fram
         treeview.column(col, width=details.get("width", 100), anchor="w", stretch=False)
 
     # Fetch & populate data
-    queries = DatabaseQueryGenerator(context_name)
-    fetch_query = queries.generate_fetch_query()
+    queries = query_generator(context_name)
+    fetch_query = queries.get("fetch_query")
 
     try:
         populate_table(treeview, fetch_query)
     except Exception as e:
         messagebox.showerror("Error", f"Failed to load data for {context_name}.")
-        if debug:
+        if DEBUG:
             print(f"Error populating Treeview: {e}")
 
-    # Bind row selection dynamically if `parent_frame` is available
+    # ✅ Bind row selection dynamically if `parent_frame` is available
     if parent_frame:
-        from src.ui.ui_events import on_datasheet_selection
+        from ui.ui_events import on_datasheet_selection
         treeview.bind("<<TreeviewSelect>>", lambda event: on_datasheet_selection(event, treeview, parent_frame, context_name))
     
     return table_frame, treeview
@@ -179,7 +180,7 @@ def create_available_parts_view(parent_widget, assembly_id, debug=DEBUG):
     """
     from tkinter import ttk, Frame, Entry, Label, StringVar
     from src.ui.shared_utils import sort_table, populate_table
-    from src.core.database_queries import fetch_available_items
+    from core.database_queries import fetch_available_items
 
     if debug:
         print(f"Creating available parts view for assembly: {assembly_id}")
@@ -228,14 +229,14 @@ def create_card_frame(parent_widget, assembly, view_name="card_view"):
     """
     print(f"🔍 DEBUG: Creating detailed card frame for Assembly {assembly.item_id} inside {parent_widget.winfo_name()}")
 
-    # Create frame inside the provided parent widget
+    # ✅ Create frame inside the provided parent widget
     card_frame = Frame(parent_widget, name="card_detail_frame", relief="raised", borderwidth=2)
     card_frame.pack(fill="x", expand=True, padx=5, pady=5)
 
-    # Display Assembly Name
+    # ✅ Display Assembly Name
     Label(card_frame, text=f"Assembly: {assembly.name}", font=("Arial", 16, "bold")).pack(pady=5)
 
-    # Display Assembly Details in Tabular Format
+    # ✅ Display Assembly Details in Tabular Format
     details_text = f"""
     Assembly ID: {assembly.item_id}
     Procurement Type: {assembly.procurement_type}
@@ -243,7 +244,7 @@ def create_card_frame(parent_widget, assembly, view_name="card_view"):
     """
     Label(card_frame, text=details_text, font=("Arial", 12)).pack(pady=5)
 
-    # Display Image (Placeholder for now)
+    # ✅ Display Image (Placeholder for now)
     img_label = Label(card_frame, text="[Image Placeholder]", bg="gray", width=50, height=10)
     img_label.pack(pady=5)
 
@@ -259,14 +260,14 @@ def create_assigned_parts_table(parent_widget, selected_assembly):
     """
     print(f"🔍 DEBUG: Creating assigned parts table for Assembly {selected_assembly.item_id}")
 
-    # Ensure the parent frame is cleared first
+    # ✅ Ensure the parent frame is cleared first
     for widget in parent_widget.winfo_children():
         widget.destroy()
 
     table_frame = Frame(parent_widget, width=1000, height=300)
     table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-    # Fix fetch query to filter by `ParentAssemblyID`
+    # ✅ Fix fetch query to filter by `ParentAssemblyID`
     fetch_query = """
         SELECT p.PartID AS PartID, p.PartName AS PartName, ap.Quantity AS Quantity
         FROM Assemblies_Parts ap
@@ -279,7 +280,7 @@ def create_assigned_parts_table(parent_widget, selected_assembly):
 
     print(f"🔍 DEBUG: Running query: {fetch_query} with ParentAssemblyID = {selected_assembly.item_id}")
 
-    # Pass correct assembly_id to `populate_table()`
+    # ✅ Pass correct assembly_id to `populate_table()`
     populate_table(treeview, fetch_query, params=(selected_assembly.item_id,), debug=True)
 
     return treeview
@@ -341,20 +342,20 @@ def create_assemblies_screen(parent_widget):
     print("✅ DEBUG: Creating main assemblies screen")
     from src.ui.ui_helpers import get_selected_assembly
 
-    # Create frame for assemblies list
-    table_frame, assemblies_table = create_assemblies_table(parent_widget)
+    # ✅ Create frame for assemblies list
+    table_frame, assemblies_table = create_assemblies_screen(parent_widget)
 
-    # Create button frame below the assemblies list
+    # ✅ Create button frame below the assemblies list
     button_frame = Frame(parent_widget, name="button_frame")
     button_frame.pack(fill="x", pady=10)
 
-    # Define buttons
+    # ✅ Define buttons
     Button(button_frame, text="Add", command=lambda: add_item()).pack(side="left", padx=5)
     Button(button_frame, text="Edit", command=lambda: edit_item(assemblies_table)).pack(side="left", padx=5)
     Button(button_frame, text="Clone", command=lambda: clone_item(assemblies_table)).pack(side="left", padx=5)
     Button(button_frame, text="Delete", command=lambda: delete_item(assemblies_table)).pack(side="left", padx=5)
 
-    # "Build" button to open the detail screen
+    # ✅ "Build" button to open the detail screen
     Button(button_frame, text="Build", command=lambda: on_build(get_selected_assembly(assemblies_table))).pack(side="left", padx=5)
 
     return assemblies_table
@@ -374,7 +375,7 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
     """
     import os
     from config.config_data import VIEW_DEFINITIONS, DEBUG
-    from src.database.database_utils import get_assembly_image
+    from src.database.Database_utils import get_assembly_image
     from PIL import Image, ImageTk
 
     # Get the fields to display for the selected view
