@@ -3,7 +3,7 @@
 from config.config_data import DATABASE_PATH
 from src.models.item import Item  # ✅ Corrected import
 from src.database.database_manager import DatabaseManager  # ✅ Use transaction manager instance
-from src.forms.validation import validate_field  # ✅ Import validation function
+
 
 VALID_PROCUREMENT_TYPES = {"Purchase", "Make", "Hybrid"}
 

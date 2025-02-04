@@ -12,22 +12,22 @@ SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "src"))
 DATABASE_PATH = os.path.join(SRC_DIR, "database", "Farmbot.db")
 BACKUP_FOLDER = os.path.join(SRC_DIR, "database", "backups")
 
-# Debugging output to confirm paths
+""" # Debugging output to confirm paths
 print(f"✅ BASE_DIR: {BASE_DIR}")
 print(f"✅ SRC_DIR: {SRC_DIR}")
 print(f"✅ DATABASE_PATH: {DATABASE_PATH}")
-print(f"✅ BACKUP_FOLDER: {BACKUP_FOLDER}")
+print(f"✅ BACKUP_FOLDER: {BACKUP_FOLDER}") """
 
 
 COLUMN_DEFINITIONS = {
     "Assemblies": {
         "columns": {
-            "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["A1"]},
+            "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["A1", "A2"]},
             "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"]},
             "AssemImageRef": {"display_name": "Image File", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "AssemImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"]},
-            "AssemDrawingID": {"display_name": "DrawingID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"]},
+            "AssemDwgID": {"display_name": "DrawingID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"]},
             "AssemCost": {"display_name": "Cost", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
             "AssemWeight": {"display_name": "Weight", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
             "AssemHoursParts": {"display_name": "Part assemble hours", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
@@ -44,7 +44,7 @@ COLUMN_DEFINITIONS = {
         }
     },"Parts": {
         "columns": {
-            "PartID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["P1"]},
+            "PartID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["P1", "P2"]},
             "PartName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["P1", "P2"]},
             "Model": {"display_name": "Model", "width": 100, "type": "string", "edit": True, "views": ["P1", "P2"]},
             "Make": {"display_name": "Make", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
@@ -61,7 +61,7 @@ COLUMN_DEFINITIONS = {
     },
     "Suppliers": {
         "columns": {
-            "SupplierID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["S1"]},
+            "SupplierID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["S1", "S2"]},
             "SupplierName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["S1", "S2"]},
             "PricePerUnit": {"display_name": "Price/Unit", "width": 100, "type": "float", "default": 0.0, "edit": True, "views": ["S1"]},
             "PartID": {"display_name": "PartID", "width": 50, "type": "int", "foreign_key": True, "default": 50, "edit": True, "views": ["S1", "S2"]},
@@ -73,7 +73,7 @@ COLUMN_DEFINITIONS = {
     },
     "Drawings": {
         "columns": {
-            "DrawingID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["D1"]},
+            "DrawingID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["D1", "D2"]},
             "DrawingName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["D1", "D2"]},
             "DrawingPath": {"display_name": "Folder Path", "width": 250, "type": "string", "edit": True, "views": ["D1", "D2"]},
             "Type": {"display_name": "Type", "width": 100, "type": "string", "edit": True, "views": ["D1", "D2"]},
@@ -86,14 +86,13 @@ COLUMN_DEFINITIONS = {
     },
     "Images": {
         "columns": {
-            "ImageID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True, "edit": False, "views": ["I1"]},
-            "ImageFileName": {"display_name": "File Name", "width": 200, "type": "string", "edit": True, "views": ["I1", "I2"]},
-            "ImageData": {"display_name": "BlobData", "width": 150, "type": "blob", "admin": True, "edit": False, "views": ["I1"]}
+            "ImageID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True, "edit": False, "views": ["I1", "I2"]},
+            "ImageFileName": {"display_name": "File Name", "width": 200, "type": "string", "edit": True, "views": ["I1", "I2"]}
         }
     },
     "Assemblies_Parts": {
         "columns": {
-            "ID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True, "edit": False, "views": ["AP1"]},
+            "ID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True, "edit": False, "views": ["AP1", "AP2"]},
             "ParentAssemblyID": {"display_name": "ParentAssemblyID", "width": 50, "type": "int", "edit": True, "views": ["AP1"]},
             "EntityType": {"display_name": "Entity Type", "width": 150, "type": "string", "edit": False, "views": ["AP1"]},
             "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase", "edit": True, "views": ["AP1"]},
@@ -252,22 +251,8 @@ def derive_view_definitions(column_definitions, static_definitions):
 # Generate final VIEW_DEFINITIONS
 VIEW_DEFINITIONS = derive_view_definitions(COLUMN_DEFINITIONS, STATIC_VIEW_DEFINITIONS)
 
-# Debugging output
+""" # Debugging output
 import pprint
-pprint.pprint(VIEW_DEFINITIONS)
+pprint.pprint(VIEW_DEFINITIONS) """
 
-
-# Generate final VIEW_DEFINITIONS
-VIEW_DEFINITIONS = derive_view_definitions(COLUMN_DEFINITIONS, STATIC_VIEW_DEFINITIONS)
-
-# Debugging output
-import pprint
-pprint.pprint(VIEW_DEFINITIONS)
-
-# Generate final VIEW_DEFINITIONS
-VIEW_DEFINITIONS = derive_view_definitions(COLUMN_DEFINITIONS, STATIC_VIEW_DEFINITIONS)
-
-# Print result for verification
-import pprint
-pprint.pprint(VIEW_DEFINITIONS)
 

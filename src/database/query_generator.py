@@ -14,16 +14,22 @@ class QueryGenerator:
         return f"SELECT * FROM {self.table_name}"
 
     def generate_insert_query(self, data):
-        """Generates a SQL INSERT query."""
-        columns = ", ".join(data.keys())
-        values = ", ".join(["?" for _ in data.keys()])
-        return f"INSERT INTO {self.table_name} ({columns}) VALUES ({values})", tuple(data.values())
+        """Generates an SQL INSERT statement dynamically."""
+        columns = list(data.keys())  # ✅ Explicitly converts to list
+        values_placeholders = ", ".join(["?" for _ in columns])
+        insert_statement = f"INSERT INTO {self.table_name} ({', '.join(columns)}) VALUES ({values_placeholders})"
+        params = list(data.values())  # ✅ Ensures correct values are passed
+
+        return insert_statement, params
+
 
     def generate_update_query(self, data):
-        """Generates a SQL UPDATE query."""
-        set_clause = ", ".join([f"{col} = ?" for col in data.keys() if col != self.primary_key])
-        values = tuple(data.values()) + (data[self.primary_key],)
-        return f"UPDATE {self.table_name} SET {set_clause} WHERE {self.primary_key} = ?", values
+        """Generates an SQL UPDATE statement dynamically."""
+        columns_to_update = [f"{col} = ?" for col in data.keys()]
+        update_statement = f"UPDATE {self.table_name} SET {', '.join(columns_to_update)} WHERE {self.primary_key} = ?"
+        params = list(data.values())  # ✅ Exclude primary key from updates
+
+        return update_statement, params
 
     def generate_delete_query(self):
         """Generates a SQL DELETE query."""

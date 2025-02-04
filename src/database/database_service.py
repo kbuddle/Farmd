@@ -12,13 +12,42 @@ class DatabaseService:
         self.db_manager = DatabaseManager(db_path)
 
     def add_item(self, context, data):
-        query_generator = QueryGenerator(context, self.get_primary_key(context))
+        """ Inserts a new record into the database, handling clones correctly. """
+        primary_key_column = self.get_primary_key(context)
+
+        # ✅ Ensure we do not manually insert the primary key (let SQLite auto-generate it)
+        if primary_key_column in data:
+            del data[primary_key_column]  
+
+        query_generator = QueryGenerator(context, primary_key_column)
+
+        # ✅ Generate INSERT query
         insert_query, params = query_generator.generate_insert_query(data)
+
+        print(f"🔍 Running Insert Query for Cloning: {insert_query} with {params}")  # ✅ Debugging output
+
         return self.db_manager.execute_query(insert_query, params)
 
+
     def update_item(self, context, data):
+        """ Updates an entity record in the database. The primary key is used to identify the record but is not updated. """
         query_generator = QueryGenerator(context, self.get_primary_key(context))
+
+        # ✅ Get the primary key column
+        primary_key_column = self.get_primary_key(context)
+
+        # ✅ Extract the primary key value from `data`
+        if primary_key_column not in data:
+            raise ValueError(f"❌ Missing primary key '{primary_key_column}' in data for update.")
+
+        primary_key_value = data.pop(primary_key_column)  # ✅ Remove primary key from `data`
+        
+        # ✅ Generate SQL query
         update_query, params = query_generator.generate_update_query(data)
+
+        # ✅ Append primary key to `params` for WHERE clause
+        params.append(primary_key_value)
+
         return self.db_manager.execute_query(update_query, params)
 
     def delete_item(self, context, item_id):
@@ -26,27 +55,50 @@ class DatabaseService:
         delete_query, params = query_generator.generate_delete_query()
         return self.db_manager.execute_query(delete_query, (item_id,))
 
-    def fetch_all(self, context):
-        """Fetch all records from a given table."""
+    def fetch_all(self, context, item_id=None):
+        """Fetch all records from a given table. If `item_id` is provided, fetch only that record."""
         query_generator = QueryGenerator(context, self.get_primary_key(context))
         fetch_query = query_generator.generate_fetch_query()
-        print(f"This is the fetch_query: {fetch_query}")
-        results = self.db_manager.execute_query(fetch_query)
-        
-        # Ensure proper mapping to column names
-        column_names = [desc[0] for desc in self.db_manager.cursor.description]  
-        return [dict(zip(column_names, row)) for row in results]
+
+        params = ()
+        if item_id:
+            fetch_query += f" WHERE {self.get_primary_key(context)} = ?"
+            params = (item_id,)
+
+        print(f"🔍 Running Query: {fetch_query} with params {params}")  # ✅ Debugging output
+
+        results = self.db_manager.execute_query(fetch_query, params)
+
+        if not results:
+            print(f"⚠️ No results found for {context}. Returning empty list.")
+            return []
+
+        corrected_results = []
+        for row in results:
+            print(f"🛠️ Mapping row: {dict(row)}")  # ✅ Debugging output
+            corrected_results.append(dict(row))
+
+        #print(f"✅ Corrected Mapped Results: {corrected_results}")  # ✅ Debugging output
+
+        return corrected_results
+
             
     def get_primary_key(self, context):
         """Retrieves the primary key column for a given table context."""
         column_definitions = COLUMN_DEFINITIONS.get(context, {}).get("columns", {})
 
+        if not column_definitions:
+            print(f"❌ No column definitions found for {context}. Check config.")
+            return None  # ✅ Return None if column definitions are missing
+        
         primary_key = next(
             (col for col, details in column_definitions.items() if details.get("is_primary_key", False)), 
             None
         )
 
         if not primary_key:
-            logger.warning(f"⚠️ No primary key defined for context: {context}")
+            print(f"❌ No primary key defined for context: {context}")
+            return None  # ✅ Return None if no primary key exists
 
+        print(f"✅ Found Primary Key for {context}: {primary_key}")  # ✅ Debugging output
         return primary_key

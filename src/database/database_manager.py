@@ -30,10 +30,29 @@ class DatabaseManager:
 
             if commit:
                 self.connection.commit()
-            return self.cursor.fetchall()
+
+            # ✅ Fetch results properly
+            results = self.cursor.fetchall()
+            if not results:
+                print("⚠️ No data returned from query.")
+                return []
+
+            # ✅ Get column names first
+            column_names = [desc[0] for desc in self.cursor.description] if self.cursor.description else []
+
+            # ✅ Correctly extract values from `sqlite3.Row` objects
+            mapped_results = []
+            for row in results:
+                mapped_row = {col: row[idx] for idx, col in enumerate(column_names)}
+                mapped_results.append(mapped_row)
+
+            #print(f"🛠️ Query Executed: {query}")  # ✅ Debugging output
+            #print(f"🛠️ Actual Query Results: {mapped_results}")  # ✅ Debugging output
+
+            return mapped_results
         except sqlite3.Error as e:
             self.connection.rollback()
-            self.logger.error(f"Database error: {e}")
+            self.logger.error(f"❌ Database error: {e}")
             raise
 
     def begin_transaction(self):
