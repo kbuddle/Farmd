@@ -24,10 +24,10 @@ COLUMN_DEFINITIONS = {
         "columns": {
             "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["A1", "A2"]},
             "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"]},
+            "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"], "default": 40},
             "AssemImageRef": {"display_name": "Image File", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "AssemImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"]},
-            "AssemDwgID": {"display_name": "DrawingID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"]},
+            "AssemImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 25},
+            "AssemDwgID": {"display_name": "DrawingID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 266},
             "AssemCost": {"display_name": "Cost", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
             "AssemWeight": {"display_name": "Weight", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
             "AssemHoursParts": {"display_name": "Part assemble hours", "width": 100, "type": "float", "edit": False, "views": ["A1"]},

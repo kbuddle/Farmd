@@ -7,7 +7,6 @@ class ServiceContainer:
     """Centralized container to manage service dependencies."""
 
     def __init__(self):
-        
         # Initialize core services
         self.database_manager = DatabaseManager()  
         self.database_service = DatabaseService(DATABASE_PATH)  

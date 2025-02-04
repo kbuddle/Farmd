@@ -1,8 +1,15 @@
 import sqlite3
 import logging
+import tkinter as tk
+import tkinter as messagebox    
+
+
 from config.config_data import DATABASE_PATH, COLUMN_DEFINITIONS
 from src.database.database_manager import DatabaseManager
 from src.database.query_generator import QueryGenerator
+from src.services.validation_service import ValidationService
+
+
 
 logger = logging.getLogger(__name__)
 dp_path = DATABASE_PATH
@@ -10,23 +17,41 @@ dp_path = DATABASE_PATH
 class DatabaseService:
     def __init__(self, db_path=DATABASE_PATH):
         self.db_manager = DatabaseManager(db_path)
+        self.validation_service = ValidationService(COLUMN_DEFINITIONS)
 
-    def add_item(self, context, data):
-        """ Inserts a new record into the database, handling clones correctly. """
-        primary_key_column = self.get_primary_key(context)
+    def add_item(self, entity_name, form_data):
+        """ Inserts a new record into the database, handling validation and constraints. """
+            
+        if not form_data:
+            messagebox.showerror("Error", "No data provided for new item.")
+            return
 
-        # ✅ Ensure we do not manually insert the primary key (let SQLite auto-generate it)
-        if primary_key_column in data:
-            del data[primary_key_column]  
+        try:
+            # ✅ Validate form data before attempting insert
+            self.validation_service.validate_form_data(entity_name, form_data)
 
-        query_generator = QueryGenerator(context, primary_key_column)
+            # ✅ Remove primary key for insert (handled by the database)
+            primary_key_column = self.get_primary_key(entity_name)
+            if primary_key_column in form_data:
+                del form_data[primary_key_column]  # ✅ Remove auto-increment primary key
 
-        # ✅ Generate INSERT query
-        insert_query, params = query_generator.generate_insert_query(data)
+            print(f"🔍 Insert Attempt: {form_data}")  # ✅ Debugging Output
 
-        print(f"🔍 Running Insert Query for Cloning: {insert_query} with {params}")  # ✅ Debugging output
+            # ✅ Generate SQL query for INSERT
+            query_generator = QueryGenerator(entity_name, primary_key_column)
+            insert_query, params = query_generator.generate_insert_query(form_data)
 
-        return self.db_manager.execute_query(insert_query, params)
+            # ✅ Execute the insert operation using db_manager
+            self.db_manager.execute_query(insert_query, params)
+
+            print(f"✅ New {entity_name} record added.")
+
+        except ValueError as e:
+            messagebox.showerror("Validation Error", str(e))  # ✅ Show validation message
+        except sqlite3.IntegrityError as e:
+            messagebox.showerror("Database Error", f"Database constraint failed: {e}")
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"An unexpected database error occurred: {e}")
 
 
     def update_item(self, context, data):
@@ -81,7 +106,6 @@ class DatabaseService:
         #print(f"✅ Corrected Mapped Results: {corrected_results}")  # ✅ Debugging output
 
         return corrected_results
-
             
     def get_primary_key(self, context):
         """Retrieves the primary key column for a given table context."""

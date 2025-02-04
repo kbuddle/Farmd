@@ -28,7 +28,6 @@ class ValidationService:
 
         return value
 
-
     def validate_form_data(self, context, form_data):
         """Validates form data before inserting or updating the database."""
         if context not in self.column_definitions:
@@ -53,7 +52,6 @@ class ValidationService:
                 )
 
         return True
-
 
     def validate_table_selection(self, table, context):
         """Ensures a selection has been made in a table."""

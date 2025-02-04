@@ -4,7 +4,10 @@ from tkinter import ttk, messagebox
 from src.ui.ui_components import ScrollableFrame
 from src.database.database_manager import DatabaseManager
 from src.services.validation_service import ValidationService
+from src.database.query_generator import QueryGenerator
 from config.config_data import COLUMN_DEFINITIONS
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 class EntityForm(tk.Frame):
     def __init__(self, parent, entity_name, tree_view_def, detail_view_def, data_manager, main_app):
@@ -23,6 +26,7 @@ class EntityForm(tk.Frame):
         self.data_manager = data_manager
         self.main_app = main_app
         self.validation_service = ValidationService(COLUMN_DEFINITIONS) 
+ 
         self.create_widgets()
         self.populate_tree()
         self.populate_detail_frame()
@@ -64,9 +68,10 @@ class EntityForm(tk.Frame):
         # ✅ Use tree_view_def for setting column names
         for field, details in self.tree_view_def["tree"]["headings"].items():
             self.entity_tree.heading(field, text=details)
-            self.entity_tree.column(field, width=100)  # Default width
+            column_width = self.tree_view_def["tree"].get("column_widths", {}).get(field, 100)  # Default to 100 if not set
+            self.entity_tree.column(field, width=column_width, anchor="w")  # Align left for readability
 
-        self.entity_tree.bind("<<TreeviewSelect>>", self.load_entity_details)
+        self.entity_tree.bind("<<TreeviewSelect>>", self.on_treeview_select)
 
         # ✅ Middle Section: Detail Frame (Uses P1)
         self.detail_frame_container = ScrollableFrame(self, text=self.detail_view_def["detail_frame"]["text"])
@@ -82,15 +87,13 @@ class EntityForm(tk.Frame):
             "Clone Item": ttk.Button(self.button_frame, text="Clone Item", command=self.clone_item, state=tk.DISABLED),
             "Delete Item": ttk.Button(self.button_frame, text="Delete Item", command=self.delete_item, state=tk.DISABLED),
             "Add Item": ttk.Button(self.button_frame, text="Add Item", command=self.add_item),
-            "Back": ttk.Button(self.button_frame, text="Back", command=self.main_app.show_landing_page)
+            "Back": ttk.Button(self.button_frame, text="Back", command=lambda: self.main_app.show_landing_page())
         }
 
         # ✅ Pack buttons
         for button in self.buttons.values():
             button.pack(side=tk.LEFT, padx=5)
 
-        # ✅ Bind treeview selection event
-        self.entity_tree.bind("<<TreeviewSelect>>", self.update_button_states)
 
         # ✅ Call update once to set initial states
         self.update_button_states()
@@ -135,6 +138,34 @@ class EntityForm(tk.Frame):
             values = tuple(record[col] for col in tree_columns if col in record)
             #print(f"🌟 Inserting row: {values}")  # ✅ Debugging output
             self.entity_tree.insert("", "end", values=values)
+
+    def on_treeview_select(self, event):
+        """Handles Treeview selection event to populate detail frame."""
+        print("Getting to here!!! treeview select")
+        self.load_entity_details(event)
+        self.update_button_states()
+
+        selected_items = self.entity_tree.selection()
+        if not selected_items:
+            logging.debug("No item selected in Treeview.")
+            return
+
+        selected_item = selected_items[0]
+        item_data = self.entity_tree.item(selected_item).get("values", [])
+
+        if not item_data:
+            logging.debug(f"Selected item {selected_item} has no values.")
+            return
+
+        column_names = self.tree_view_def.get("tree", {}).get("columns", [])
+        if not column_names:
+            logging.warning("Treeview column definitions are missing.")
+            return
+
+        prefill_data = dict(zip(column_names, item_data))
+        logging.debug(f"Prefilled Data: {prefill_data}")
+
+        self.populate_detail_frame(prefill_data)
 
     def populate_detail_frame(self, prefill_data=None):
         """Populates the detail frame. If no data is provided, it clears fields."""
@@ -190,7 +221,6 @@ class EntityForm(tk.Frame):
 
         self.detail_frame_container.scrollable_frame.update_idletasks()  # ✅ Force UI refresh
         print("✅ Detail Frame Successfully Updated.")  # ✅ Debugging output
-
 
     def load_entity_details(self, event):
         """Loads selected row details into the form fields when a Treeview row is clicked."""
@@ -249,12 +279,6 @@ class EntityForm(tk.Frame):
 
         # ✅ Populate the detail frame with fetched data
         self.populate_detail_frame(prefill_data=matching_record)
-
-
-
-
-
-
 
     def save_item(self):
         """ Saves a new entity record or updates an existing one. """
@@ -400,45 +424,47 @@ class EntityForm(tk.Frame):
         print(f"🔹 Please edit before saving to avoid duplication.")
 
     def delete_item(self):
-        """ Deletes the selected entity record from the database. """
+        """Deletes the selected item after confirmation and clears the form."""
+        
+        # ✅ Get the selected item from Treeview
         selected_item = self.entity_tree.selection()
         if not selected_item:
-            print(f"❌ No item selected for deletion in {self.entity_name}.")
+            messagebox.showerror("Error", "No item selected for deletion.")
             return
 
-        # ✅ Get the primary key column for this entity
+        # ✅ Retrieve the primary key for the selected row
         primary_key_column = self.data_manager.get_primary_key(self.entity_name)
-
-        # ✅ Get the value of the primary key for the selected row
-        selected_values = self.entity_tree.item(selected_item, "values")
         
-        # ✅ Ensure we are referencing the correct column from the treeview
-        reference_column = self.tree_view_def["tree"]["columns"][0]  # First column is usually the primary key
-        reference_value = selected_values[0]  # First column value should be the ID
-
-        # ✅ Fetch the actual row data to confirm the correct primary key
-        full_records = self.data_manager.fetch_all(self.entity_name)
-        matching_record = next(
-            (record for record in full_records if str(record[reference_column]) == str(reference_value)), None
-        )
-
-        if not matching_record:
-            print(f"❌ No matching record found for {reference_column}={reference_value}")
+        selected_values = self.entity_tree.item(selected_item, "values")
+        if not selected_values:
+            messagebox.showerror("Error", "Selected item has no data.")
             return
 
-        item_id = matching_record[primary_key_column]
+        item_id = selected_values[0]  # ✅ Assuming the primary key is the first column in Treeview
+
+        # ✅ Ask for confirmation before deleting
+        confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this item?")
+        if not confirm:
+            return  # ✅ Exit if the user cancels
 
         try:
-            # ✅ Delete using the correct primary key
+            # ✅ Call `delete_item` from `DatabaseService`
             self.data_manager.delete_item(self.entity_name, item_id)
-            print(f"✅ Deleted {self.entity_name} record: {primary_key_column}={item_id}")
 
-            self.refresh_tree()  # ✅ Refresh Treeview after deletion
+            # ✅ Remove item from Treeview
+            self.entity_tree.delete(selected_item)
+
+            # ✅ Clear the form after successful deletion
+            self.clear_form()
+
+            print(f"✅ Deleted {self.entity_name} record with ID {item_id}")
 
         except sqlite3.IntegrityError as e:
-            print(f"❌ Database Integrity Error (FK Constraint): {e}")
+            messagebox.showerror("Database Error", f"Cannot delete item due to foreign key constraint: {e}")
         except sqlite3.Error as e:
-            print(f"❌ Database Error: {e}")
+            messagebox.showerror("Database Error", f"An unexpected database error occurred: {e}")
+
+
 
     def clear_form(self):
         """ Clears all fields in the form after adding an item. """
