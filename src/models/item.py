@@ -1,6 +1,3 @@
-# subject to redistribution within new filing structure.
-# subject to redistribution within new filing structure.
-
 from src.database.database_service import DatabaseService
 
 
@@ -37,7 +34,19 @@ class Part(Item):
     def __init__(self, db_manager):
         super().__init__(db_manager, table_name="Parts", primary_key="PartID")
 
+    
 class Supplier(Item):
     """ Represents a Supplier entity. """
     def __init__(self, db_manager):
         super().__init__(db_manager, table_name="Suppliers", primary_key="SupplierID")
+
+class Drawing(Item):
+    """ Represents a Drawing entity. """
+    def __init__(self, db_manager):
+        super().__init__(db_manager, table_name="Drawings", primary_key="DrawingID")
+
+
+class Image(Item):
+    """ Represents an Image entity. """
+    def __init__(self, db_manager):
+        super().__init__(db_manager, table_name="Images", primary_key="ImageID")

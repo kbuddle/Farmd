@@ -53,7 +53,6 @@ class DatabaseService:
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"An unexpected database error occurred: {e}")
 
-
     def update_item(self, context, data):
         """ Updates an entity record in the database. The primary key is used to identify the record but is not updated. """
         query_generator = QueryGenerator(context, self.get_primary_key(context))

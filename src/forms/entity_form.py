@@ -464,8 +464,6 @@ class EntityForm(tk.Frame):
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"An unexpected database error occurred: {e}")
 
-
-
     def clear_form(self):
         """ Clears all fields in the form after adding an item. """
         for field in self.fields.values():

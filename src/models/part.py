@@ -14,10 +14,11 @@ class Part(Item):
         :param name: Name of the part
         :param procurement_type: "Purchase" (default) or "Make"
         """
-        super().__init__(part_id, name)
-        self.procurement_type = procurement_type
+        super().__init__(db_service, table_name="Parts", primary_key="PartID")
+        self.item_id = part_id
+        self.name = name
         self.procurement_type = procurement_type if procurement_type else "Purchase"
-
+        
     @classmethod
     def fetch_from_db(cls, part_id):
         """Fetch a part using DatabaseTransactionManagement."""
