@@ -17,7 +17,7 @@ dp_path = DATABASE_PATH
 class DatabaseService:
     def __init__(self, db_path=DATABASE_PATH):
         self.db_manager = DatabaseManager(db_path)
-        
+    
         self.validation_service = ValidationService(COLUMN_DEFINITIONS)
 
     def add_item(self, entity_name, form_data):
@@ -137,3 +137,21 @@ class DatabaseService:
         except sqlite3.Error as e:
             print(f"Database error: {e}")
             return None
+        
+    def fetch_raw(self, query, params=()):
+        """Fetch all rows using a raw SQL query and return them as tuples."""
+        try:
+            cursor = self.db_manager.connection.cursor()
+            cursor.execute(query, params)
+            results = cursor.fetchall()  # ✅ Fetch raw sqlite3.Row objects
+
+            # ✅ Convert sqlite3.Row objects to standard tuples (ImageID, ImageFilename)
+            formatted_results = [tuple(row) for row in results]
+
+            return formatted_results
+        except sqlite3.Error as e:
+            print(f"❌ Database error in fetch_raw: {e}")
+            return []
+
+    def execute_query(self, query, params=()):
+        return self.db_manager.execute_query(query, params)

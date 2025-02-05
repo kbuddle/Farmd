@@ -11,7 +11,7 @@ SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "src"))
 # ✅ Set database path inside `src/database/`
 DATABASE_PATH = os.path.join(SRC_DIR, "database", "Farmbot.db")
 BACKUP_FOLDER = os.path.join(SRC_DIR, "database", "backups")
-IMAGE_FOLDER = os.path.join(SRC_DIR, "images")
+IMAGE_FOLDER = "D:\FarmbotPythonV2\images"
 
 """ # Debugging output to confirm paths
 print(f"✅ BASE_DIR: {BASE_DIR}")
@@ -27,7 +27,7 @@ COLUMN_DEFINITIONS = {
             "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"], "default": 40},
             "AssemImageRef": {"display_name": "Image File", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "AssemImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 25},
+            "ImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 26},
             "AssemDwgID": {"display_name": "DrawingID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 266},
             "AssemCost": {"display_name": "Cost", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
             "AssemWeight": {"display_name": "Weight", "width": 100, "type": "float", "edit": False, "views": ["A1"]},
@@ -52,7 +52,7 @@ COLUMN_DEFINITIONS = {
             "Dimensions": {"display_name": "Dimensions", "width": 150, "type": "string", "edit": True, "views": ["P1", "P2"]},
             "Notes": {"display_name": "Notes", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
             "Manufacturer": {"display_name": "Manufacturer", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
-            "ImageRef": {"display_name": "ImageRef", "width": 100, "type": "string", "edit": True, "views": ["P1", "I1"]},
+            "ImageID": {"display_name": "ImageID", "width": 100, "type": "int", "edit": True, "views": ["P1", "I1"], "default": 26},
             "DrawingID": {"display_name": "DrawingID", "width": 100, "type": "int", "foreign_key": True, "default": 266, "edit": True, "views": ["P1", "D1"]},
             "ManPartNum": {"display_name": "ManPartNum", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
             "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": True, "views": ["P1"]},

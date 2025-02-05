@@ -5,53 +5,92 @@ class ValidationService:
 
     def validate_field(self, field_name, value, field_type, valid_values=None, default=None, required=False):
         """Validates a single field based on type and constraints."""
-
+        print(f"Debug: Validating field {field_name} with value {value}, type {field_type}, valid_values {valid_values}, default {default}, required {required}")
+        
         if required and (value is None or value == ""):
             if default is not None:
-                print(f"⚠️ WARNING: {field_name} is required but missing. Defaulting to {default}.")
                 return default
-            raise ValueError(f"{field_name} is required.")
+            print(f"⚠️ Debug: Raising missing field error for {field_name}")
+            raise ValueError(f"❌ {field_name} is required.")
 
         if valid_values and value not in valid_values:
             if default is not None:
-                print(f"⚠️ WARNING: Invalid value for {field_name}: {value}. Defaulting to {default}.")
                 return default
-            raise ValueError(f"Invalid value for {field_name}. Expected one of {valid_values}.")
+            print(f"⚠️ Debug: Raising invalid value error for {field_name}")
+            raise ValueError(f"❌ Invalid value for {field_name}. Expected one of {valid_values}.")
 
         try:
             if field_type == "int":
-                return int(value) if value is not None else None  # ✅ Allow None
+                return int(value)
             elif field_type == "float":
-                return float(value) if value is not None else None  # ✅ Allow None
-        except ValueError:
-            raise ValueError(f"{field_name} must be a {field_type}.")
+                return float(value)
+        except ValueError as e:
+            print(f"⚠️ Debug: Type conversion error for {field_name} -> {value} ({field_type}): {str(e)}")
+            raise ValueError(f"❌ {field_name} must be a valid {field_type}.")  # ✅ Now replaces Python's default error
 
         return value
 
-    def validate_form_data(self, context, form_data):
-        """Validates form data before inserting or updating the database."""
+
+    def extract_form_data(self, form_data, context):
+        """Extracts and preprocesses form data (applies defaults, type conversion)."""
         if context not in self.column_definitions:
             raise ValueError(f"❌ No column definitions found for context: {context}")
 
         all_columns = self.column_definitions[context]["columns"]
-        missing_fields = [col for col, details in all_columns.items()
-                        if details.get("required", False) and not form_data.get(col)]
+        cleaned_data = {}
+
+        for field_name, col_details in all_columns.items():
+            value = form_data.get(field_name, col_details.get("default"))
+
+            # ✅ Ensure `None` values are replaced with defaults
+            if value in [None, "None",""]:
+                value = col_details.get("default", None)# Convert to correct type
+
+            expected_type = col_details.get("type", "text")
+            if expected_type == "int":
+                value = int(value) if value is not None else None
+            elif expected_type == "float":
+                value = float(value) if value is not None else None
+
+            cleaned_data[field_name] = value
+
+        return cleaned_data  # ✅ Now returns a processed dictionary
+
+    def validate_form_data(self, context, form_data):
+        """Validates form data before inserting or updating the database and returns cleaned data."""
+        # ✅ Preprocess data first
+        cleaned_data = self.extract_form_data(form_data, context)
+
+        # ✅ Ensure no "None" strings are left in the cleaned data
+        for key, value in cleaned_data.items():
+            if isinstance(value, str) and value.strip().lower() == "none":
+                cleaned_data[key] = None  # Convert to actual None
+
+        all_columns = self.column_definitions[context]["columns"]
+
+        # ✅ Check for missing required fields (after applying defaults)
+        missing_fields = [
+            col for col, details in all_columns.items()
+            if details.get("required", False) and col not in cleaned_data
+        ]
 
         if missing_fields:
-            raise ValueError(f"❌ Validation failed: Missing required fields - {missing_fields}")
+            raise ValueError(f"❌ Missing required fields: {', '.join(missing_fields)}")
 
+
+        # ✅ Perform additional validation (e.g., valid values)
         for col_name, col_details in all_columns.items():
-            if col_name in form_data:
-                form_data[col_name] = self.validate_field(
+            if col_name in cleaned_data:
+                cleaned_data[col_name] = self.validate_field(
                     field_name=col_name,
-                    value=form_data[col_name],
+                    value=cleaned_data[col_name],  # ✅ Now using preprocessed data
                     field_type=col_details.get("type", "text"),
                     valid_values=col_details.get("valid_values"),
                     default=col_details.get("default"),
-                    required=col_details.get("required", False),  # ✅ Pass required flag
+                    required=col_details.get("required", False),
                 )
 
-        return True
+        return cleaned_data  # ✅ Returns validated data instead of just True
 
     def validate_table_selection(self, table, context):
         """Ensures a selection has been made in a table."""

@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 import sqlite3
-from tkinter import ttk, messagebox, Label, Image
+from tkinter import ttk, messagebox, Label, Image, Button, Toplevel
 from PIL import Image, ImageTk
 from src.ui.ui_components import ScrollableFrame
 from src.database.database_manager import DatabaseManager
@@ -37,6 +37,128 @@ class EntityForm(tk.Frame):
         self.populate_tree()
         self.populate_detail_frame()
 
+    def open_image_picker(self):
+        """Opens a gallery view to pick an image and update AssemImageID."""
+        
+        # ✅ Step 1: Confirm with the user
+        if not messagebox.askyesno("Select New Image", "Do you want to search for a new image?"):
+            return
+
+        # ✅ Step 2: Fetch images
+        query = "SELECT ImageID, ImageFilename FROM Images"
+        images = self.db_service.fetch_raw(query)  # ✅ Using fetch_raw()
+
+        print(f"✅ Retrieved images: {images}")  # ✅ Debugging output to verify correct data format
+
+        if not images:
+            messagebox.showerror("Error", "No images found in the database.")
+            return
+
+        # ✅ Step 3: Create the image selection window
+        popup = Toplevel(self)
+        popup.title("Select an Image")
+        popup.geometry("600x400")
+
+        row, col, max_columns = 0, 0, 4
+        for image_id, filename in images:
+            image_path = os.path.join(IMAGE_FOLDER, filename)  # ✅ Uses correctly imported IMAGE_FOLDER
+            if not os.path.exists(image_path):
+                print(f"⚠️ Skipping missing image: {image_path}")
+                continue  # Skip missing images
+
+            img = Image.open(image_path)
+            img.thumbnail((100, 100))
+            img = ImageTk.PhotoImage(img)
+
+            # ✅ Create a frame for each image and label
+            image_frame = ttk.Frame(popup)
+            image_frame.grid(row=row, column=col, padx=5, pady=5)
+
+            # ✅ Create the button with the image
+            btn = Button(image_frame, image=img, command=lambda id=image_id: self.set_selected_image(id, popup))
+            btn.image = img  # ✅ Keep reference to prevent garbage collection
+            btn.pack()
+
+            # ✅ Add a label below the image with filename
+            lbl = Label(image_frame, text=filename, font=("Arial", 10))
+            lbl.pack()
+
+            col += 1
+            if col >= max_columns:
+                col = 0
+                row += 1
+
+    def set_selected_image(self, image_id, popup):
+        """Displays a confirmation popup before saving the selected image."""
+
+        # ✅ Open a confirmation popup
+        confirm_popup = tk.Toplevel(self)
+        confirm_popup.title("Confirm Image Selection")
+        confirm_popup.geometry("300x150")
+
+        # ✅ Label with confirmation message
+        label = ttk.Label(confirm_popup, text="Do you want to save this image selection?")
+        label.pack(pady=10)
+
+        # ✅ Button Frame
+        button_frame = ttk.Frame(confirm_popup)
+        button_frame.pack(pady=10)
+
+        # ✅ Save Image function (executes query)
+        def save_image():
+            self.execute_image_update(image_id)  # ✅ Calls the actual save function
+            confirm_popup.destroy()
+            popup.destroy()  # ✅ Closes both popups
+
+        # ✅ Cancel function (closes popup without saving)
+        def cancel():
+            confirm_popup.destroy()  # ✅ Only closes the confirmation popup
+
+        # ✅ Green "Save" Button (FULL background color)
+        save_button = tk.Button(button_frame, text="Save", command=save_image,
+                                font=("Arial", 10, "bold"), bg="green", fg="white", activebackground="darkgreen")
+        save_button.pack(side=tk.LEFT, padx=10)
+
+        # ✅ Red "Cancel" Button (FULL background color)
+        cancel_button = tk.Button(button_frame, text="Cancel", command=cancel,
+                                font=("Arial", 10, "bold"), bg="red", fg="white", activebackground="darkred")
+        cancel_button.pack(side=tk.RIGHT, padx=10)
+
+    def execute_image_update(self, image_id):
+        """Saves the selected image in the database and refreshes the displayed image."""
+
+        # ✅ Determine table and ID column dynamically
+        if self.entity_name == "Assemblies":
+            id_column = "AssemblyID"
+            table_name = "Assemblies"
+        elif self.entity_name == "Parts":
+            id_column = "PartID"
+            table_name = "Parts"
+        else:
+            messagebox.showerror("Error", f"Unsupported entity: {self.entity_name}")
+            return
+
+        if id_column not in self.item_data or not self.item_data[id_column]:
+            messagebox.showerror("Error", f"No {self.entity_name} selected.")
+            return
+
+        entity_id = self.item_data[id_column]  # ✅ Get the selected ID
+
+        query = f"UPDATE {table_name} SET ImageID = ? WHERE {id_column} = ?"
+
+        try:
+            self.db_service.db_manager.execute_query(query, (image_id, entity_id))  # ✅ Update correct table
+            print(f"✅ Image ID {image_id} set for {self.entity_name} {entity_id}.")
+        except Exception as e:
+            print(f"❌ Database update failed: {e}")
+            return
+
+        # ✅ Update `self.item_data` with the new ImageID
+        self.item_data["ImageID"] = image_id
+
+        # ✅ Reload the image in the UI
+        self.load_detail_image()
+
     def create_widgets(self):
         """Sets up the UI components including Treeview, Detail Frame, and Buttons."""
         
@@ -46,23 +168,24 @@ class EntityForm(tk.Frame):
         self.grid_rowconfigure(1, weight=1)  # Detail frame expands
         self.grid_rowconfigure(2, weight=0)  # Button frame remains fixed
 
-        # ✅ Top Section: Treeview with Scrollbar
+        # ✅ TOP SECTION: Treeview with Scrollbars
         self.tree_frame_container = ttk.Frame(self)
         self.tree_frame_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
 
+        # ✅ Ensure Treeview columns are properly defined
         self.entity_tree = ttk.Treeview(
             self.tree_frame_container,
             columns=list(self.tree_view_def["tree"]["columns"]),
-            show="headings"
+            show="headings"  # ✅ Ensure column headings are visible
         )
 
-        # Attach scrollbars
+        # ✅ Attach Scrollbars
         tree_scroll_y = ttk.Scrollbar(self.tree_frame_container, orient="vertical", command=self.entity_tree.yview)
         tree_scroll_x = ttk.Scrollbar(self.tree_frame_container, orient="horizontal", command=self.entity_tree.xview)
 
         self.entity_tree.configure(yscrollcommand=tree_scroll_y.set, xscrollcommand=tree_scroll_x.set)
 
-        # Grid positioning
+        # ✅ Grid positioning
         self.entity_tree.grid(row=0, column=0, sticky="nsew")
         tree_scroll_y.grid(row=0, column=1, sticky="ns")
         tree_scroll_x.grid(row=1, column=0, sticky="ew")
@@ -70,20 +193,34 @@ class EntityForm(tk.Frame):
         self.tree_frame_container.grid_columnconfigure(0, weight=1)
         self.tree_frame_container.grid_rowconfigure(0, weight=1)
 
-        # ✅ Middle Section: Detail Frame (Uses P1)
+        # ✅ Ensure column headings are set correctly
+        for field, details in self.tree_view_def["tree"]["headings"].items():
+            self.entity_tree.heading(field, text=details)  # ✅ Set column heading
+            column_width = self.tree_view_def["tree"].get("column_widths", {}).get(field, 100)  # Default width = 100
+            self.entity_tree.column(field, width=column_width, anchor="w")  # Align left for readability
+
+        self.entity_tree.bind("<<TreeviewSelect>>", self.on_treeview_select)
+
+        # ✅ Ensure `show="headings"` is set
+        self.entity_tree["show"] = "headings"
+
+        # ✅ MIDDLE SECTION: Detail Frame
         self.detail_frame_container = ScrollableFrame(self, text=self.detail_view_def["detail_frame"]["text"])
         self.detail_frame_container.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
 
-        # 📷 IMAGE INTEGRATION: Add Image Label inside Detail Frame (using grid)
+        # 📷 IMAGE INTEGRATION: Add Image Label inside Detail Frame
         self.detail_frame_container.grid_columnconfigure(3, weight=1)  # Allow space for image
 
-        self.image_label = Label(self.detail_frame_container)
+        self.image_label = Label(self.detail_frame_container, cursor="hand2", text="(No image)")
         self.image_label.grid(row=0, column=3, padx=10, pady=10, sticky="e")  # Align to RHS
 
-        # Load and display the image
+        # ✅ Load and display the image
         self.load_detail_image()
 
-        # ✅ Bottom Section: Button Frame
+        # ✅ Bind left-click event to open image picker
+        self.image_label.bind("<Button-1>", lambda event: self.open_image_picker())
+
+        # ✅ BOTTOM SECTION: Button Frame
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
 
@@ -93,7 +230,8 @@ class EntityForm(tk.Frame):
             "Clone Item": ttk.Button(self.button_frame, text="Clone Item", command=self.clone_item, state=tk.DISABLED),
             "Delete Item": ttk.Button(self.button_frame, text="Delete Item", command=self.delete_item, state=tk.DISABLED),
             "Add Item": ttk.Button(self.button_frame, text="Add Item", command=self.add_item),
-            "Back": ttk.Button(self.button_frame, text="Back", command=lambda: self.main_app.show_landing_page())
+            "Back": ttk.Button(self.button_frame, text="Back", command=lambda: self.main_app.show_landing_page()),
+            "Clear": ttk.Button(self.button_frame, text="Clear", command=self.reset_to_defaults)
         }
 
         # ✅ Pack buttons
@@ -103,23 +241,18 @@ class EntityForm(tk.Frame):
         # ✅ Call update once to set initial states
         self.update_button_states()
 
-
-    def update_button_states(self, event=None):
-        """Updates button states based on selection in the Treeview."""
+    def update_button_states(self, is_new=False):
+        """Updates button states based on the selected item or new entry."""
+        
         selected_item = self.entity_tree.selection()
+        has_selection = bool(selected_item)
 
-        if selected_item:
-            # ✅ Enable edit-related buttons when an item is selected
-            self.buttons["Save Changes"].config(state=tk.NORMAL)
-            self.buttons["Clone Item"].config(state=tk.NORMAL)
-            self.buttons["Delete Item"].config(state=tk.NORMAL)
-            self.buttons["Add Item"].config(state=tk.DISABLED)
-        else:
-            # ✅ Enable add functionality when no item is selected
-            self.buttons["Save Changes"].config(state=tk.DISABLED)
-            self.buttons["Clone Item"].config(state=tk.DISABLED)
-            self.buttons["Delete Item"].config(state=tk.DISABLED)
-            self.buttons["Add Item"].config(state=tk.NORMAL)
+        # ✅ Enable Save button if adding a new item
+        self.buttons["Save Changes"].config(state=tk.NORMAL if is_new or has_selection else tk.DISABLED)
+
+        # ✅ Enable Clone, Delete only if an item is selected
+        self.buttons["Clone Item"].config(state=tk.NORMAL if has_selection else tk.DISABLED)
+        self.buttons["Delete Item"].config(state=tk.NORMAL if has_selection else tk.DISABLED)
 
     def populate_tree(self):
         """Fetches and displays all parts dynamically using DatabaseService (P2)."""
@@ -141,37 +274,81 @@ class EntityForm(tk.Frame):
 
         # ✅ Insert data into treeview
         for record in entity_data:
-            values = tuple(record[col] for col in tree_columns if col in record)
+            values = tuple("" if record[col] is None else record[col] for col in tree_columns if col in record)
             #print(f"🌟 Inserting row: {values}")  # ✅ Debugging output
             self.entity_tree.insert("", "end", values=values)
 
     def on_treeview_select(self, event):
-        """Handles Treeview selection event to populate detail frame."""
-        print("Getting to here!!! treeview select")
-        self.load_entity_details(event)
-        self.update_button_states()
+        """Handles row selection in the treeview and updates the detail frame, including the image."""
 
-        selected_items = self.entity_tree.selection()
-        if not selected_items:
-            logging.debug("No item selected in Treeview.")
+        selected_item = self.entity_tree.selection()
+        if not selected_item:
+            print("⚠️ No item selected.")
+            self.update_button_states()  # ✅ Disable buttons when nothing is selected
+            return  # No selection, do nothing
+
+        # ✅ Extract `item_id` from the first column of the selected row
+        selected_values = self.entity_tree.item(selected_item[0], "values")
+        
+        if not selected_values:
+            print("⚠️ No values found in selection.")
             return
 
-        selected_item = selected_items[0]
-        item_data = self.entity_tree.item(selected_item).get("values", [])
+        item_id = selected_values[0]  # ✅ Get ID from first column
+        print(f"🔍 Selected Item ID: {item_id}")  # ✅ Debugging Output
 
-        if not item_data:
-            logging.debug(f"Selected item {selected_item} has no values.")
+        # ✅ Define table and primary key mapping dynamically
+        entity_table_mapping = {
+            "Assemblies": "Assemblies",
+            "Parts": "Parts",
+            "Drawings": "Drawings",
+            "Images": "Images",
+            "Suppliers": "Suppliers"
+        }
+
+        entity_id_mapping = {
+            "Assemblies": "AssemblyID",
+            "Parts": "PartID",
+            "Drawings": "DrawingID",
+            "Images": "ImageID",
+            "Suppliers": "SupplierID"
+        }
+
+        if self.entity_name not in entity_table_mapping:
+            print(f"❌ Unsupported entity: {self.entity_name}")
+            self.update_button_states()
             return
 
-        column_names = self.tree_view_def.get("tree", {}).get("columns", [])
-        if not column_names:
-            logging.warning("Treeview column definitions are missing.")
-            return
+        # ✅ Assign dynamic table and ID column
+        table_name = entity_table_mapping[self.entity_name]
+        id_column = entity_id_mapping[self.entity_name]
 
-        prefill_data = dict(zip(column_names, item_data))
-        logging.debug(f"Prefilled Data: {prefill_data}")
+        query = f"SELECT * FROM {table_name} WHERE {id_column} = ?"
+        print(f"🔍 Running Query: {query} with item_id={item_id}")  # ✅ Debugging Output
 
-        self.populate_detail_frame(prefill_data)
+        result = self.db_service.fetch_one(query, (item_id,))
+        
+        if result:
+            self.item_data = dict(result)  # ✅ Convert sqlite3.Row to dictionary
+            print(f"✅ XXXXX Selected {self.entity_name} Data: {self.item_data}")
+
+            # ✅ Ensure ImageID is correctly used if applicable
+            if "ImageID" in self.item_data and not self.item_data["ImageID"]:
+                self.item_data["ImageID"] = 26  # ✅ Default to 26 (default.png)
+                print(f"⚠️ No ImageID found, using default.")
+
+            # ✅ Populate detail fields (pass item_data)
+            self.populate_detail_frame(self.item_data)  # ✅ Pass fetched data
+
+            # ✅ Load image if ImageID is available
+            if "ImageID" in self.item_data:
+                self.load_detail_image()
+
+            # ✅ Enable buttons after selection
+            self.update_button_states()
+        else:
+            print(f"⚠️ No data found for {id_column}: {item_id}")
+            self.update_button_states()
 
     def populate_detail_frame(self, prefill_data=None):
         """Populates the detail frame. If no data is provided, it clears fields."""
@@ -188,8 +365,8 @@ class EntityForm(tk.Frame):
         entry_style = ttk.Style()
         entry_style.configure("Readonly.TEntry", foreground="black", background="lightgray")  # ✅ Styling for readonly fields
 
-        # ✅ Check if `prefill_data` is valid before proceeding
-        if prefill_data is None:
+        # ✅ If no prefill data, use an empty dictionary
+        if not prefill_data:
             print("❌ No prefill data received. Defaulting all fields to empty.")
             prefill_data = {}
 
@@ -205,13 +382,9 @@ class EntityForm(tk.Frame):
             # ✅ Create entry field
             entry = ttk.Entry(self.detail_frame_container.scrollable_frame, width=details["width"])
 
-            # ✅ Check if the key exists in prefill_data (avoid mismatches)
-            if field in prefill_data:
-                value = prefill_data[field]
-            else:
-                print(f"⚠️ Warning: {field} not found in prefill data. Using default empty string.")
-                value = ""
-
+            # ✅ Retrieve value from prefill_data
+            value = prefill_data.get(field, "")
+            value = "" if value is None else value  # ✅ Ensure None is displayed as ""
             print(f"🔹 Setting {field} to '{value}'")  # ✅ Debugging output
 
             entry.insert(0, str(value))  # ✅ Insert value as string
@@ -225,7 +398,10 @@ class EntityForm(tk.Frame):
 
             row_index += 1  
 
-        self.detail_frame_container.scrollable_frame.update_idletasks()  # ✅ Force UI refresh
+        # ✅ Force UI refresh to prevent stale data issues
+        self.detail_frame_container.scrollable_frame.update_idletasks()  
+        self.update_button_states()  # ✅ Ensure buttons are enabled/disabled properly
+
         print("✅ Detail Frame Successfully Updated.")  # ✅ Debugging output
 
     def load_entity_details(self, event):
@@ -287,60 +463,56 @@ class EntityForm(tk.Frame):
         self.populate_detail_frame(prefill_data=matching_record)
 
     def save_item(self):
-        """ Saves a new entity record or updates an existing one. """
+        """Saves a new entity record or updates an existing one in the database."""
         form_data = self.get_form_data()
-
         if not form_data:
             print("❌ No data provided for saving.")
             return
 
-        # ✅ Detect if cloned data is unchanged
-        if hasattr(self, "cloned_data") and form_data == self.cloned_data:
-            messagebox.showwarning(
-                "Duplicate Clone Detected",
-                "Please edit before saving. No changes detected from the cloned record."
-            )
-            return  # ✅ Prevent save operation
-
+        # ✅ Primary key retrieval & selection check
+        primary_key_column = self.db_service.get_primary_key(self.entity_name)
         selected_item = self.entity_tree.selection()
-        primary_key_column = self.data_manager.get_primary_key(self.entity_name)
+        is_new_entry = not selected_item
 
-        if selected_item:
-            # ✅ Updating an existing record
-            selected_values = self.entity_tree.item(selected_item, "values")
-            reference_column = self.tree_view_def["tree"]["columns"][0]
-            reference_value = selected_values[0]
+        try:
+            if is_new_entry:
+                # ✅ Remove primary key for new records (auto-increment support)
+                form_data.pop(primary_key_column, None)
 
-            # ✅ Fetch the actual row data
-            full_records = self.data_manager.fetch_all(self.entity_name)
-            matching_record = next(
-                (record for record in full_records if str(record[reference_column]) == str(reference_value)), None
-            )
+                new_item_id = self.db_service.add_item(self.entity_name, form_data)
+                print(f"✅ New {self.entity_name} record added with ID {new_item_id}.")
+            else:
+                # ✅ Ensure a valid selection exists before updating
+                selected_values = self.entity_tree.item(selected_item, "values")
+                if not selected_values:
+                    print("❌ No valid selection found for update.")
+                    return
 
-            if not matching_record:
-                print(f"❌ No matching record found for {reference_column}={reference_value}")
-                return
+                reference_column = self.tree_view_def["tree"]["columns"][0]
+                reference_value = selected_values[0]
 
-            item_id = matching_record[primary_key_column]
-            form_data[primary_key_column] = item_id  # ✅ Ensure ID is included in form_data
+                # ✅ Fetch the existing record for verification
+                full_records = self.db_service.fetch_all(self.entity_name)
+                matching_record = next(
+                    (record for record in full_records if str(record[reference_column]) == str(reference_value)), None
+                )
 
-            try:
-                self.data_manager.update_item(self.entity_name, form_data)
+                if not matching_record:
+                    print(f"❌ No matching record found for {reference_column}={reference_value}")
+                    return
+
+                # ✅ Ensure primary key is included for updates
+                form_data[primary_key_column] = matching_record[primary_key_column]
+
+                self.db_service.update_item(self.entity_name, form_data)
                 print(f"✅ {self.entity_name} record updated.")
-            except Exception as e:
-                print(f"❌ Save Error: {e}")
 
-        else:
-            # ✅ Creating a new record
-            try:
-                self.data_manager.add_item(self.entity_name, form_data)
-                print(f"✅ New {self.entity_name} record added.")
-            except Exception as e:
-                print(f"❌ Save Error: {e}")
+        except Exception as e:
+            print(f"❌ Database Error in {self.entity_name} with data {form_data}: {e}")
 
+        # ✅ Refresh treeview to reflect changes
         self.refresh_tree()
-        if hasattr(self, "cloned_data"):
-            del self.cloned_data  # ✅ Clear cloned data after saving
+        self.reset_to_defaults()
 
     def edit_item(self):
         """ Edits the selected entity record. """
@@ -360,115 +532,124 @@ class EntityForm(tk.Frame):
         print(f"✅ Item {item_id} updated successfully.")
 
     def add_item(self):
-        """ Adds a new entity record to the database after validating data. """
-        form_data = self.get_form_data()
+        """Prepares the detail frame for adding a new item."""
 
-        if not form_data:
-            print("❌ No data provided for new item.")
-            return
+        # ✅ Clear selection to ensure a new record is being created
+        self.entity_tree.selection_remove(self.entity_tree.selection())
 
-        try:
-            # ✅ Validate form data before attempting insert
-            self.validation_service.validate_form_data(self.entity_name, form_data)
+        # ✅ Reset item_data for new record
+        self.item_data = {}
 
-            # ✅ Remove primary key for insert (handled by the database)
-            primary_key_column = self.data_manager.get_primary_key(self.entity_name)
-            if primary_key_column in form_data:
-                del form_data[primary_key_column]  # ✅ Remove auto-increment primary key
+        # ✅ Handle special cases (Drawings require a valid `DrawingPath`)
+        if self.entity_name == "Drawings":
+            self.item_data["DrawingPath"] = "default_path.pdf"  # ✅ Ensures NOT NULL constraint is met
 
-            print(f"🔍 Insert Attempt: {form_data}")  # ✅ Debugging Output
+        # ✅ Populate detail frame with new blank entry (or defaults)
+        self.populate_detail_frame(self.item_data)
 
-            # ✅ Pass validated form data to `DatabaseService`
-            self.data_manager.add_item(self.entity_name, form_data)
+        # ✅ Enable Save button for new entries
+        self.update_button_states(is_new=True)
 
-            print(f"✅ New {self.entity_name} record added.")
-
-            self.refresh_tree()  # ✅ Refresh Treeview
-            self.clear_form()  # ✅ Clear form after successful insert
-
-        except ValueError as e:
-            print(f"❌ Validation Error: {e}")
-        except sqlite3.IntegrityError as e:
-            print(f"❌ Database Integrity Error: {e}")
-        except sqlite3.Error as e:
-            print(f"❌ Database Error: {e}")
+        print(f"✅ Ready to add a new {self.entity_name}. Enter details and save.")
 
     def clone_item(self):
-        """ Clones the selected entity record but does not save it immediately. """
-        import tkinter.messagebox as messagebox  # ✅ Import messagebox for warning dialogs
-        
+        """Clones the selected item and loads it into the detail frame for editing."""
+
         selected_item = self.entity_tree.selection()
         if not selected_item:
-            print(f"❌ No item selected for cloning in {self.entity_name}.")
+            messagebox.showwarning("Warning", "No item selected for cloning.")
             return
 
-        # ✅ Get the primary key column dynamically
-        primary_key_column = self.data_manager.get_primary_key(self.entity_name)
+        item_id = self.entity_tree.item(selected_item[0], "values")[0]  # ✅ Get ID from first column
 
-        # ✅ Get selected row values
-        selected_values = self.entity_tree.item(selected_item, "values")
-        reference_column = self.tree_view_def["tree"]["columns"][0]  # First column is usually the primary key
-        reference_value = selected_values[0]  # First column value should be the ID
+        # ✅ Dynamically determine table and primary key column
+        entity_id_mapping = {
+            "Assemblies": "AssemblyID",
+            "Parts": "PartID",
+            "Drawings": "DrawingID",
+            "Images": "ImageID",
+            "Suppliers": "SupplierID"
+        }
 
-        # ✅ Fetch full record data
-        full_records = self.data_manager.fetch_all(self.entity_name)
-        matching_record = next(
-            (record for record in full_records if str(record[reference_column]) == str(reference_value)), None
-        )
-
-        if not matching_record:
-            print(f"❌ No matching record found for {reference_column}={reference_value}")
+        if self.entity_name not in entity_id_mapping:
+            print(f"❌ Unsupported entity: {self.entity_name}")
             return
 
-        # ✅ Clone data (EXCLUDE the primary key so user must save manually)
-        self.cloned_data = {key: value for key, value in matching_record.items() if key != primary_key_column}
+        id_column = entity_id_mapping[self.entity_name]
+        table_name = self.entity_name
 
-        # ✅ Populate the form with cloned data
-        self.populate_detail_frame(prefill_data=self.cloned_data)  # ✅ Now correctly passing data
+        # ✅ Fetch the record to clone
+        query = f"SELECT * FROM {table_name} WHERE {id_column} = ?"
+        result = self.db_service.fetch_one(query, (item_id,))
+        
+        if result:
+            self.cloned_data = dict(result)  # ✅ Convert sqlite3.Row to dictionary
+            print(f"✅ Cloned Data Before Modifications: {self.cloned_data}")
 
-        print(f"✅ Cloned {self.entity_name} record: Original {primary_key_column}={reference_value}")
-        print(f"🔹 Please edit before saving to avoid duplication.")
+            # ✅ Remove the original ID to allow auto-increment
+            if id_column in self.cloned_data:
+                del self.cloned_data[id_column]  # ✅ Remove ID for auto-increment
+
+            # ✅ Ensure ParentAssemblyID is handled correctly (NULL if needed)
+            if "ParentAssemblyID" in self.cloned_data and not self.cloned_data["ParentAssemblyID"]:
+                self.cloned_data["ParentAssemblyID"] = None  # ✅ Allow DB to handle NULL
+
+            # ✅ Load cloned data into the detail frame for editing
+            self.populate_detail_frame(self.cloned_data)  # ✅ Pass cloned data
+
+            # ✅ Clear Treeview selection to prevent mistaken updates
+            self.entity_tree.selection_remove(self.entity_tree.selection())
+
+            # ✅ Inform user to make changes before saving
+            messagebox.showinfo("Success", "Cloned item loaded for editing. Make changes and save.")
+            
+            print(f"✅ Cloned Data Ready for Editing: {self.cloned_data}")
+        else:
+            print(f"⚠️ No data found for {id_column}: {item_id}")
 
     def delete_item(self):
-        """Deletes the selected item after confirmation and clears the form."""
-        
-        # ✅ Get the selected item from Treeview
+        """Deletes the selected item after confirmation and handles errors properly."""
         selected_item = self.entity_tree.selection()
-        if not selected_item:
-            messagebox.showerror("Error", "No item selected for deletion.")
-            return
-
-        # ✅ Retrieve the primary key for the selected row
-        primary_key_column = self.data_manager.get_primary_key(self.entity_name)
         
-        selected_values = self.entity_tree.item(selected_item, "values")
-        if not selected_values:
-            messagebox.showerror("Error", "Selected item has no data.")
+        if not selected_item:
+            messagebox.showwarning("Warning", "No item selected for deletion.")
             return
 
-        item_id = selected_values[0]  # ✅ Assuming the primary key is the first column in Treeview
+        # ✅ Retrieve item ID safely
+        item_values = self.entity_tree.item(selected_item[0], "values")
+        if not item_values or len(item_values) == 0:
+            print("❌ Unable to retrieve item ID for deletion.")
+            return
+        item_id = item_values[0]
 
-        # ✅ Ask for confirmation before deleting
+        # ✅ Confirm deletion
         confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this item?")
         if not confirm:
-            return  # ✅ Exit if the user cancels
+            return
+
+        # ✅ Fetch primary key dynamically
+        id_column = self.db_service.get_primary_key(self.entity_name)
+        if not id_column:
+            print(f"❌ Unable to determine primary key for {self.entity_name}")
+            return
+
+        table_name = self.entity_name
+        query = f"DELETE FROM {table_name} WHERE {id_column} = ?"
 
         try:
-            # ✅ Call `delete_item` from `DatabaseService`
-            self.data_manager.delete_item(self.entity_name, item_id)
+            print(f"🗑 Attempting to delete {self.entity_name} | ID: {item_id} | Column: {id_column}")
+            self.data_manager.execute_query(query, (item_id,))
+            print(f"✅ Successfully deleted {self.entity_name} ID: {item_id}")
+        except sqlite3.IntegrityError:
+            print(f"❌ Cannot delete {self.entity_name} ID {item_id} due to foreign key constraints.")
+            messagebox.showerror("Error", f"Cannot delete {self.entity_name}. It is referenced in other records.")
+        except Exception as e:
+            print(f"❌ Delete Error: {e}")
+            messagebox.showerror("Error", f"Failed to delete {self.entity_name}: {e}")
 
-            # ✅ Remove item from Treeview
-            self.entity_tree.delete(selected_item)
-
-            # ✅ Clear the form after successful deletion
-            self.clear_form()
-
-            print(f"✅ Deleted {self.entity_name} record with ID {item_id}")
-
-        except sqlite3.IntegrityError as e:
-            messagebox.showerror("Database Error", f"Cannot delete item due to foreign key constraint: {e}")
-        except sqlite3.Error as e:
-            messagebox.showerror("Database Error", f"An unexpected database error occurred: {e}")
+        # ✅ Refresh treeview after deletion
+        self.refresh_tree()
+        self.reset_to_defaults()
 
     def clear_form(self):
         """ Clears all fields in the form after adding an item. """
@@ -476,89 +657,115 @@ class EntityForm(tk.Frame):
             field.delete(0, tk.END)
 
     def get_form_data(self):
-        """ Retrieves form data from input fields ensuring proper data types. """
-        form_data = {}
+        """ ✅ Passes data directly to ValidationService (no extra processing) """
+        raw_form_data = {
+            field: (widget.get().strip() if widget.get().strip().lower() != "none" else None)
+            for field, widget in self.fields.items()
+        }
 
-        for field, entry in self.fields.items():
-            value = entry.get().strip()  # ✅ Remove whitespace
-
-            column_def = COLUMN_DEFINITIONS.get(self.entity_name, {}).get("columns", {}).get(field, {})
-
-            # ✅ If field is primary key and no selection exists, skip it (assume auto-increment)
-            if column_def.get("is_primary_key", False):
-                selected_item = self.entity_tree.selection()
-                if not selected_item:
-                    continue  # ✅ Do not include the primary key for new records
-
-            # ✅ Convert value to correct type
-            expected_type = column_def.get("type")
-
-            if value == "":
-                value = column_def.get("default", None)  # ✅ Use default if provided, else None
-
-            elif expected_type == "int":
-                try:
-                    value = int(value)
-                except ValueError:
-                    print(f"❌ Error: {field} expects an integer but got '{value}'")
-                    return None
-
-            elif expected_type == "float":
-                try:
-                    value = float(value)
-                except ValueError:
-                    print(f"❌ Error: {field} expects a float but got '{value}'")
-                    return None
-
-            form_data[field] = value
-
-        return form_data
+        try:
+            # ✅ Use ValidationService to process and clean data
+            cleaned_data = self.validation_service.extract_form_data(raw_form_data, self.entity_name)
+            return cleaned_data
+        except Exception as e:
+            print(f"❌ Error processing form data: {e}")
+            return None  # Return None to prevent invalid data from being saved
 
     def refresh_tree(self):
         """ Refreshes the treeview after an update. """
         self.entity_tree.delete(*self.entity_tree.get_children())  # Clear treeview
         self.populate_tree()  # Reload data
-
+   
     def load_detail_image(self):
-        """ 📷 IMAGE INTEGRATION: Loads and displays the entity image based on ImageID reference. """
+        """ 📷 Loads and displays the correct image based on ImageID."""
+        
+        image_id = self.item_data.get("ImageID", 26)  # ✅ Default to 26 if missing
 
-        # 📷 Default ImageID for missing images
-        DEFAULT_IMAGE_ID = 26
-
-        # Determine which field to use: Assemblies use AssemImageID, Parts use ImageRef
-        image_id = None
-        if "AssemImageID" in self.item_data:
-            image_id = self.item_data.get("AssemImageID")  # Assembly Image ID
-        elif "ImageRef" in self.item_data:
-            image_id = self.item_data.get("ImageRef")  # Part Image Reference
-
-        # If no valid ImageID is found, use default ImageID
-        if not image_id:
-            image_id = DEFAULT_IMAGE_ID
-
-        # 📷 Query the database to get the ImageFilename from the Images table
+        # ✅ Query the latest image filename from the database
         query = "SELECT ImageFilename FROM Images WHERE ImageID = ?"
         result = self.db_service.fetch_one(query, (image_id,))
 
-        # Use the retrieved filename or fallback to default.png
-        image_filename = result[0] if result else "default.png"
+        if result:
+            image_filename = result[0]
+        else:
+            print(f"⚠️ ImageID {image_id} not found in database. Using default.png.")
+            image_filename = "default.png"  # ✅ Default fallback
+
         image_path = os.path.join(IMAGE_FOLDER, image_filename)
-        image_label = image_filename if result else "default.png"
-        
-        # 📷 Load image or fallback to default
+        print(f"🔍 Checking for image: {image_path}")
+
         if not os.path.exists(image_path):
-            image_path = os.path.join(IMAGE_FOLDER, "default.png")  # Fallback to default image
+            print(f"⚠️ Image not found: {image_path}, using default.png")
+            image_path = os.path.join(IMAGE_FOLDER, "default.png")  # ✅ Use fallback
 
         try:
             img = Image.open(image_path)
-            img = img.resize((400, 300), Image.ANTIALIAS)
+            img = img.resize((400, 300), Image.Resampling.LANCZOS)  # ✅ Updated method
             img = ImageTk.PhotoImage(img)
 
-            # 📷 Update label with new image
+            print("✅ Image loaded successfully!")
+
             self.image_label.config(image=img)
-            self.image_label.image = img  # Keep reference to prevent garbage collection
-
+            self.image_label.image = img  # ✅ Prevent garbage collection
         except Exception as e:
-            print(f"Error loading image {image_path}: {e}")  # Log error for debugging
+            print(f"❌ Error loading image {image_path}: {e}")
 
+    def clear_detail_form(self):
+        """Clears all input fields, including primary and foreign keys, and deselects the treeview selection."""
+
+        primary_key_field = self.db_service.get_primary_key(self.entity_name)  # ✅ Get PK column name
+
+        for field, widget in self.fields.items():
+            # ✅ Temporarily enable read-only fields to allow clearing
+            if widget.cget("state") == "readonly":
+                widget.configure(state="normal")
+
+            widget.delete(0, "end")  # ✅ Clear input
+
+            # ✅ Ensure PK is fully removed
+            if field == primary_key_field:
+                widget.insert(0, "")  # ✅ Ensure it's visually cleared
+
+            # ✅ Restore read-only state if necessary
+            if self.detail_view_def["fields"].get(field, {}).get("edit", True) is False:
+                widget.configure(state="readonly")
+
+        # ✅ Deselect any selected item in the treeview
+        self.entity_tree.selection_remove(self.entity_tree.selection())
+
+        print("✅ Detail form cleared, including primary & foreign keys.")
+
+    def reset_to_defaults(self):
+        """Resets the detail form to default values, including primary key and foreign keys."""
+
+        # ✅ Get primary key field name
+        primary_key_field = self.db_service.get_primary_key(self.entity_name)
+
+        # ✅ Retrieve default values from the validation service
+        default_data = {
+            field: details.get("default", "")  # Use the default if defined, otherwise empty
+            for field, details in self.detail_view_def["fields"].items()
+        }
+
+        for field, widget in self.fields.items():
+            # ✅ Temporarily enable read-only fields to allow resetting
+            if widget.cget("state") == "readonly":
+                widget.configure(state="normal")
+
+            # ✅ Reset the value to the default (or empty if no default exists)
+            widget.delete(0, "end")
+            widget.insert(0, str(default_data.get(field, "")))
+
+            # ✅ Ensure PK is properly cleared
+            if field == primary_key_field:
+                widget.delete(0, "end")  # Fully remove ID if auto-incremented
+
+            # ✅ Restore read-only state if necessary
+            if self.detail_view_def["fields"].get(field, {}).get("edit", True) is False:
+                widget.configure(state="readonly")
+
+        # ✅ Deselect any selected item in the treeview
+        self.entity_tree.selection_remove(self.entity_tree.selection())
+
+        print("✅ Detail form reset to default values.")
 
