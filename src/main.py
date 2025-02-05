@@ -14,7 +14,6 @@ from src.ui.assemblies_screen import AssembliesScreen
 from config.config_data import DEBUG, VIEW_DEFINITIONS
 from src.ui.entity_screen import EntityScreen
 from src.database.database_manager import DatabaseManager
-from src.forms.parts_form import PartsForm
 from src.forms.entity_form import EntityForm
 
 

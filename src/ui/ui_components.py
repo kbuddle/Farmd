@@ -22,8 +22,12 @@ class ScrollableFrame(ttk.LabelFrame):  # Change from ttk.Frame to ttk.LabelFram
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.scrollbar.pack(side="right", fill="y")
-        self.canvas.pack(side="left", fill="both", expand=True)
+         # ✅ Use grid() instead of pack()
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         # Expose the internal frame for widgets
         self.frame = self.scrollable_frame

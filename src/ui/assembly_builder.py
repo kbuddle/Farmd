@@ -11,7 +11,7 @@ class AssemblyBuilder(tk.Toplevel):
         self.geometry("700x500")
         self.resizable(False, False)
 
-        self.assembly = Assembly.fetch_from_db(None, assembly_id)  # Fetch assembly data
+        self.assembly = Assembly.fetch_from_db(assembly_id)  # ✅ Corrected call
 
         # Parts List Frame
         self.parts_frame = ttk.LabelFrame(self, text="Assigned Parts & Assemblies")
@@ -54,7 +54,7 @@ class AssemblyBuilder(tk.Toplevel):
             return
 
         item_values = self.parts_tree.item(selected_item[0], "values")
-        component_id, component_name, current_quantity = item_values[0], item_values[1], int(item_values[2])
+        component_id, component_name, current_quantity = item_values[0], item_values[1], float(item_values[2])
 
         EditComponentWindow(self, self.assembly.item_id, component_id, component_name, current_quantity)
 

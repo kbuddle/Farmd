@@ -17,6 +17,7 @@ dp_path = DATABASE_PATH
 class DatabaseService:
     def __init__(self, db_path=DATABASE_PATH):
         self.db_manager = DatabaseManager(db_path)
+        
         self.validation_service = ValidationService(COLUMN_DEFINITIONS)
 
     def add_item(self, entity_name, form_data):
@@ -125,3 +126,14 @@ class DatabaseService:
 
         print(f"✅ Found Primary Key for {context}: {primary_key}")  # ✅ Debugging output
         return primary_key
+    
+    def fetch_one(self, query, params=()):
+        """Fetch a single row from the database."""
+        try:
+            cursor = self.db_manager.connection.cursor()  # ✅ Corrected typo and assigned cursor
+            cursor.execute(query, params)
+            result = cursor.fetchone()  # ✅ Fetches the first row or None
+            return result
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return None

@@ -1,11 +1,14 @@
+import os
 import tkinter as tk
 import sqlite3
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, Label, Image
+from PIL import Image, ImageTk
 from src.ui.ui_components import ScrollableFrame
 from src.database.database_manager import DatabaseManager
+from src.database.database_service import DatabaseService
 from src.services.validation_service import ValidationService
 from src.database.query_generator import QueryGenerator
-from config.config_data import COLUMN_DEFINITIONS
+from config.config_data import COLUMN_DEFINITIONS, IMAGE_FOLDER
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,8 +28,11 @@ class EntityForm(tk.Frame):
         self.detail_view_def = detail_view_def
         self.data_manager = data_manager
         self.main_app = main_app
+        self.db_service= DatabaseService()  
         self.validation_service = ValidationService(COLUMN_DEFINITIONS) 
- 
+        
+        self.item_data={}
+        
         self.create_widgets()
         self.populate_tree()
         self.populate_detail_frame()
@@ -40,11 +46,10 @@ class EntityForm(tk.Frame):
         self.grid_rowconfigure(1, weight=1)  # Detail frame expands
         self.grid_rowconfigure(2, weight=0)  # Button frame remains fixed
 
-        # ✅ Top Section: Treeview with Scrollbar (Uses P2)
+        # ✅ Top Section: Treeview with Scrollbar
         self.tree_frame_container = ttk.Frame(self)
         self.tree_frame_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
 
-        # ✅ Use tree_view_def for defining tree columns
         self.entity_tree = ttk.Treeview(
             self.tree_frame_container,
             columns=list(self.tree_view_def["tree"]["columns"]),
@@ -65,19 +70,20 @@ class EntityForm(tk.Frame):
         self.tree_frame_container.grid_columnconfigure(0, weight=1)
         self.tree_frame_container.grid_rowconfigure(0, weight=1)
 
-        # ✅ Use tree_view_def for setting column names
-        for field, details in self.tree_view_def["tree"]["headings"].items():
-            self.entity_tree.heading(field, text=details)
-            column_width = self.tree_view_def["tree"].get("column_widths", {}).get(field, 100)  # Default to 100 if not set
-            self.entity_tree.column(field, width=column_width, anchor="w")  # Align left for readability
-
-        self.entity_tree.bind("<<TreeviewSelect>>", self.on_treeview_select)
-
         # ✅ Middle Section: Detail Frame (Uses P1)
         self.detail_frame_container = ScrollableFrame(self, text=self.detail_view_def["detail_frame"]["text"])
         self.detail_frame_container.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
-       
-        # ✅ Create a button frame
+
+        # 📷 IMAGE INTEGRATION: Add Image Label inside Detail Frame (using grid)
+        self.detail_frame_container.grid_columnconfigure(3, weight=1)  # Allow space for image
+
+        self.image_label = Label(self.detail_frame_container)
+        self.image_label.grid(row=0, column=3, padx=10, pady=10, sticky="e")  # Align to RHS
+
+        # Load and display the image
+        self.load_detail_image()
+
+        # ✅ Bottom Section: Button Frame
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
 
@@ -94,9 +100,9 @@ class EntityForm(tk.Frame):
         for button in self.buttons.values():
             button.pack(side=tk.LEFT, padx=5)
 
-
         # ✅ Call update once to set initial states
         self.update_button_states()
+
 
     def update_button_states(self, event=None):
         """Updates button states based on selection in the Treeview."""
@@ -512,3 +518,47 @@ class EntityForm(tk.Frame):
         """ Refreshes the treeview after an update. """
         self.entity_tree.delete(*self.entity_tree.get_children())  # Clear treeview
         self.populate_tree()  # Reload data
+
+    def load_detail_image(self):
+        """ 📷 IMAGE INTEGRATION: Loads and displays the entity image based on ImageID reference. """
+
+        # 📷 Default ImageID for missing images
+        DEFAULT_IMAGE_ID = 26
+
+        # Determine which field to use: Assemblies use AssemImageID, Parts use ImageRef
+        image_id = None
+        if "AssemImageID" in self.item_data:
+            image_id = self.item_data.get("AssemImageID")  # Assembly Image ID
+        elif "ImageRef" in self.item_data:
+            image_id = self.item_data.get("ImageRef")  # Part Image Reference
+
+        # If no valid ImageID is found, use default ImageID
+        if not image_id:
+            image_id = DEFAULT_IMAGE_ID
+
+        # 📷 Query the database to get the ImageFilename from the Images table
+        query = "SELECT ImageFilename FROM Images WHERE ImageID = ?"
+        result = self.db_service.fetch_one(query, (image_id,))
+
+        # Use the retrieved filename or fallback to default.png
+        image_filename = result[0] if result else "default.png"
+        image_path = os.path.join(IMAGE_FOLDER, image_filename)
+        image_label = image_filename if result else "default.png"
+        
+        # 📷 Load image or fallback to default
+        if not os.path.exists(image_path):
+            image_path = os.path.join(IMAGE_FOLDER, "default.png")  # Fallback to default image
+
+        try:
+            img = Image.open(image_path)
+            img = img.resize((400, 300), Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(img)
+
+            # 📷 Update label with new image
+            self.image_label.config(image=img)
+            self.image_label.image = img  # Keep reference to prevent garbage collection
+
+        except Exception as e:
+            print(f"Error loading image {image_path}: {e}")  # Log error for debugging
+
+

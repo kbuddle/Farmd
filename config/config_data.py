@@ -11,6 +11,7 @@ SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "src"))
 # ✅ Set database path inside `src/database/`
 DATABASE_PATH = os.path.join(SRC_DIR, "database", "Farmbot.db")
 BACKUP_FOLDER = os.path.join(SRC_DIR, "database", "backups")
+IMAGE_FOLDER = os.path.join(SRC_DIR, "images")
 
 """ # Debugging output to confirm paths
 print(f"✅ BASE_DIR: {BASE_DIR}")
