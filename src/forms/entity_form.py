@@ -699,8 +699,24 @@ class EntityForm(tk.Frame):
         self.populate_tree()  # Reload data
    
     def load_detail_image(self):
-        """ 📷 Loads and displays the correct image based on ImageID. """
-        
+        """
+        Loads and displays the correct image based on ImageID.
+        This method performs the following steps:
+        1. Retrieves the primary key column name for the current entity.
+        2. Checks if the primary key column is present in `self.item_data`.
+        3. Fetches the latest ImageID from the database using the primary key.
+        4. Retrieves the image filename associated with the ImageID from the database.
+        5. Constructs the image path and checks if the file exists.
+        6. Attempts to load and resize the image, falling back to a default image if necessary.
+        7. Updates the image label with the loaded image and forces a UI refresh.
+        Raises:
+            ValueError: If no primary key mapping is found for the entity.
+        Notes:
+            - Uses a default ImageID of 26 if not found in `self.item_data`.
+            - Uses a default image file "default.png" if the specified image file does not exist.`
+            - Ensures the image label is updated and prevents garbage collection of the image.
+        """
+                
         self.primary_key_column = ENTITY_ID_MAPPING.get(self.entity_name)  # ✅ Get primary key column name
         if not self.primary_key_column:
             raise ValueError(f"❌ No primary key mapping found for entity: {self.entity_name}")
@@ -742,11 +758,27 @@ class EntityForm(tk.Frame):
         # ✅ Try to load the image, falling back to default if it fails
         try:
             img = Image.open(image_path)
-            img = img.resize((400, 300), Image.Resampling.LANCZOS)
+            img.thumbnail((400, 300), Image.Resampling.LANCZOS)
+            
+            # Create a new image with padding
+            window_bg_color = self.winfo_rgb(self.cget("background"))  # Get the background color of the window as RGB
+            window_bg_color = tuple(map(lambda x: x // 256, window_bg_color))  # Convert to 8-bit RGB
+            padded_img = Image.new("RGB", (400, 300), window_bg_color)  # Use window background color
+            img_width, img_height = img.size
+            offset = ((400 - img_width) // 2, (300 - img_height) // 2)
+            padded_img.paste(img, offset)
+            img = padded_img
         except Exception as e:
             print(f"❌ Error loading image {image_path}: {e}, using default.png")
             img = Image.open(os.path.join(IMAGE_FOLDER, "default.png"))
-            img = img.resize((400, 300), Image.Resampling.LANCZOS)
+            img.thumbnail((400, 300), Image.Resampling.LANCZOS)
+            
+            # Create a new image with padding
+            padded_img = Image.new("RGB", (400, 300), (255, 255, 255))  # White background
+            img_width, img_height = img.size
+            offset = ((400 - img_width) // 2, (300 - img_height) // 2)
+            padded_img.paste(img, offset)
+            img = padded_img
 
         img = ImageTk.PhotoImage(img)
 
