@@ -18,8 +18,8 @@ class DatabaseService:
     def __init__(self, db_path=DATABASE_PATH):
         self.db_manager = DatabaseManager(db_path)
     
-        self.validation_service = ValidationService(COLUMN_DEFINITIONS)
-
+        self.validation_service = ValidationService(COLUMN_DEFINITIONS, self)
+        
     def add_item(self, entity_name, form_data):
         """ Inserts a new record into the database, handling validation and constraints. """
             
@@ -29,7 +29,7 @@ class DatabaseService:
 
         try:
             # ✅ Validate form data before attempting insert
-            self.validation_service.validate_form_data(entity_name, form_data)
+            self.validation_service.validate_form_data(entity_name, form_data, is_new_entry=True)
 
             # ✅ Remove primary key for insert (handled by the database)
             primary_key_column = self.get_primary_key(entity_name)
@@ -100,7 +100,7 @@ class DatabaseService:
 
         corrected_results = []
         for row in results:
-            print(f"🛠️ Mapping row: {dict(row)}")  # ✅ Debugging output
+            #print(f"🛠️ Mapping row: {dict(row)}")  # ✅ Debugging output
             corrected_results.append(dict(row))
 
         #print(f"✅ Corrected Mapped Results: {corrected_results}")  # ✅ Debugging output

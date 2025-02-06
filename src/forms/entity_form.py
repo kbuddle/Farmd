@@ -29,7 +29,7 @@ class EntityForm(tk.Frame):
         self.data_manager = data_manager
         self.main_app = main_app
         self.db_service= DatabaseService()  
-        self.validation_service = ValidationService(COLUMN_DEFINITIONS) 
+        self.validation_service = ValidationService(COLUMN_DEFINITIONS, self.db_service) 
         
         self.item_data={}
         
@@ -394,6 +394,9 @@ class EntityForm(tk.Frame):
                 entry.configure(state="readonly", style="Readonly.TEntry")
 
             entry.grid(row=row_index, column=1, padx=5, pady=2, sticky="w")
+            
+            entry.bind("<KeyRelease>", lambda event: self.enable_save_button())
+            
             self.fields[field] = entry  # ✅ Store reference to entry field
 
             row_index += 1  
@@ -462,57 +465,43 @@ class EntityForm(tk.Frame):
         # ✅ Populate the detail frame with fetched data
         self.populate_detail_frame(prefill_data=matching_record)
 
+   
     def save_item(self):
-        """Saves a new entity record or updates an existing one in the database."""
-        form_data = self.get_form_data()
+        """Saves a new entity record or updates an existing one while ensuring correct validation rules."""
+        selected_item = self.entity_tree.selection()
+        is_new_entry = not selected_item  # Determines new vs update
+
+        # ✅ Fetch cleaned data (already validated)
+        form_data = self.get_form_data(is_new_entry, self.db_service)    
         if not form_data:
             print("❌ No data provided for saving.")
             return
 
-        # ✅ Primary key retrieval & selection check
-        primary_key_column = self.db_service.get_primary_key(self.entity_name)
-        selected_item = self.entity_tree.selection()
-        is_new_entry = not selected_item
+        print(f"Check state of new_entry {is_new_entry}, form_data {form_data}, and self.entity_name {self.entity_name} 3 args to validate form data")
 
         try:
-            if is_new_entry:
-                # ✅ Remove primary key for new records (auto-increment support)
-                form_data.pop(primary_key_column, None)
+            # ✅ Pass correct form_data instead of `selected_item`
+            validated_data = self.validation_service.validate_form_data(self.entity_name, form_data, is_new_entry)
 
-                new_item_id = self.db_service.add_item(self.entity_name, form_data)
+            if is_new_entry:
+                new_item_id = self.db_service.add_item(self.entity_name, validated_data)
                 print(f"✅ New {self.entity_name} record added with ID {new_item_id}.")
             else:
-                # ✅ Ensure a valid selection exists before updating
-                selected_values = self.entity_tree.item(selected_item, "values")
-                if not selected_values:
-                    print("❌ No valid selection found for update.")
-                    return
+                primary_key_column = self.db_service.get_primary_key(self.entity_name)
+                reference_value = self.entity_tree.item(selected_item[0], "values")[0]
+                validated_data[primary_key_column] = reference_value  # Ensure PK exists for update
 
-                reference_column = self.tree_view_def["tree"]["columns"][0]
-                reference_value = selected_values[0]
-
-                # ✅ Fetch the existing record for verification
-                full_records = self.db_service.fetch_all(self.entity_name)
-                matching_record = next(
-                    (record for record in full_records if str(record[reference_column]) == str(reference_value)), None
-                )
-
-                if not matching_record:
-                    print(f"❌ No matching record found for {reference_column}={reference_value}")
-                    return
-
-                # ✅ Ensure primary key is included for updates
-                form_data[primary_key_column] = matching_record[primary_key_column]
-
-                self.db_service.update_item(self.entity_name, form_data)
+                self.db_service.update_item(self.entity_name, validated_data)
                 print(f"✅ {self.entity_name} record updated.")
 
         except Exception as e:
-            print(f"❌ Database Error in {self.entity_name} with data {form_data}: {e}")
+            print(f"❌ Validation/Database Error in save item: {e}")
 
-        # ✅ Refresh treeview to reflect changes
         self.refresh_tree()
-        self.reset_to_defaults()
+        self.clear_form()  # Reset form after saving
+
+
+
 
     def edit_item(self):
         """ Edits the selected entity record. """
@@ -539,6 +528,7 @@ class EntityForm(tk.Frame):
 
         # ✅ Reset item_data for new record
         self.item_data = {}
+        self.clear_form()
 
         # ✅ Handle special cases (Drawings require a valid `DrawingPath`)
         if self.entity_name == "Drawings":
@@ -656,16 +646,18 @@ class EntityForm(tk.Frame):
         for field in self.fields.values():
             field.delete(0, tk.END)
 
-    def get_form_data(self):
+    def get_form_data(self, is_new_entry, db_service):
         """ ✅ Passes data directly to ValidationService (no extra processing) """
         raw_form_data = {
             field: (widget.get().strip() if widget.get().strip().lower() != "none" else None)
             for field, widget in self.fields.items()
         }
-
+        print(f"here is {raw_form_data}")
+        print(f" is new entry state with get form data is {is_new_entry}")
         try:
             # ✅ Use ValidationService to process and clean data
-            cleaned_data = self.validation_service.extract_form_data(raw_form_data, self.entity_name)
+            cleaned_data = self.validation_service.extract_form_data(raw_form_data, self.entity_name, is_new_entry)
+            print(f"Here is cleaned data {cleaned_data}")
             return cleaned_data
         except Exception as e:
             print(f"❌ Error processing form data: {e}")
@@ -769,3 +761,6 @@ class EntityForm(tk.Frame):
 
         print("✅ Detail form reset to default values.")
 
+    def enable_save_button(self):
+        """Enables the Save button when user starts typing."""
+        self.buttons["Save Changes"].config(state=tk.NORMAL)

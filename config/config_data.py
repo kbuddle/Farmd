@@ -35,8 +35,8 @@ COLUMN_DEFINITIONS = {
             "AssemHoursAssembly": {"display_name": "Assembling hours", "width": 100, "type": "float", "edit": True, "views": ["A1"]},
             "AssemTotalHours": {"display_name": "Total hours", "width": 100, "type": "float",  "default": 266, "edit": True, "views": ["A1"]},
             "AssemFocus": {"display_name": "Focus", "width": 100, "type": "string", "edit": True, "views": ["A1"]},
-            "AssemCostFlag": {"display_name": "Cost Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"]},
-            "AssemWeightFlag": {"display_name": "Weight Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"]},
+            "AssemCostFlag": {"display_name": "Cost Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
+            "AssemWeightFlag": {"display_name": "Weight Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
             "AssemStatus": {"display_name": "Status", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": False, "views": ["A1", "A2"]},
@@ -76,13 +76,13 @@ COLUMN_DEFINITIONS = {
         "columns": {
             "DrawingID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["D1", "D2"]},
             "DrawingName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["D1", "D2"]},
-            "DrawingPath": {"display_name": "Folder Path", "width": 250, "type": "string", "edit": True, "views": ["D1", "D2"]},
+            "DrawingPath": {"display_name": "Folder Path", "width": 250, "type": "string", "edit": True, "views": ["D1", "D2"], "default": "D:\Path"},
             "Type": {"display_name": "Type", "width": 100, "type": "string", "edit": True, "views": ["D1", "D2"]},
             "Date": {"display_name": "Date", "width": 120, "type": "string", "edit": True, "views": ["D1"]},
             "Size": {"display_name": "Size", "width": 80, "type": "numeric", "edit": True, "views": ["D1"]},
             "Status": {"display_name": "Status", "width": 100, "type": "string", "edit": True, "views": ["D1"]},
-            "Revision": {"display_name": "Revision", "width": 80, "type": "int", "edit": True, "views": ["D1"]},
-            "RelatedItemID": {"display_name": "Related PartID", "width": 100, "type": "int", "foreign_key": True, "default": 50, "edit": True, "views": ["D1", "P1"]}
+            "Revision": {"display_name": "Revision", "width": 80, "type": "int", "edit": True, "views": ["D1"], "default": 0},
+            "RelatedItemID": {"display_name": "Related PartID", "width": 100, "type": "int", "foreign_key": True, "default": 50, "edit": True, "views": ["D1", "P1"], "default": 0}
         }
     },
     "Images": {
