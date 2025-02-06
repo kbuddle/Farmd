@@ -1,12 +1,12 @@
 # subject to redistribution within new filing structure.
 
 from tkinter import Toplevel, Frame, Button
-from src.ui.ui_components import create_card_frame, create_assigned_parts_table, create_available_parts_table
+from ui.ui_components import create_card_frame, create_assigned_parts_table, create_available_parts_table
 
-from src.models.assembly import Assembly
-from src.models.part import Part
-from src.database.database_manager import DatabaseManager
-from src.models.assembly import Assembly  # ✅ Import Assembly class
+from models.assembly import Assembly
+from models.part import Part
+from database.database_manager import DatabaseManager
+from models.assembly import Assembly  # ✅ Import Assembly class
 
 def on_assembly_selection(event, table, card_frame, parts_container):
     """
@@ -103,7 +103,7 @@ def populate_table(treeview, fetch_query, params=None, debug=True):
     """
     Populates the Treeview with data from the database.
     """
-    from src.core.database_transactions import db_manager
+    from core.database_transactions import db_manager
     
     if debug:
         print(f"🔍 DEBUG: Fetch Query = {fetch_query}, Params = {params}")

@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from src.database.database_manager import DatabaseManager
-from src.models.assembly import Assembly
-from src.services.assembly_parts_fetcher import AssemblyPartsFetcher
+from database.database_manager import DatabaseManager
+from models.assembly import Assembly
+from services.assembly_parts_fetcher import AssemblyPartsFetcher
 
 class AddComponentWindow(tk.Toplevel):
     def __init__(self, parent, assembly):

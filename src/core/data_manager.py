@@ -1,6 +1,6 @@
-from src.database.database_manager import DatabaseManager
+from database.database_manager import DatabaseManager
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
-from src.database.query_generator import QueryGenerator
+from database.query_generator import QueryGenerator
 
 class DataManager:
     """Handles database save operations for adding and editing records."""

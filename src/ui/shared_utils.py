@@ -6,7 +6,7 @@ from tkinter import messagebox, StringVar
 from tkinter import ttk, Frame  # Consolidated imports
 
 from config.config_data import DEBUG, COLUMN_DEFINITIONS, DATABASE_PATH
-from src.database.database_manager import DatabaseManager
+from database.database_manager import DatabaseManager
 
 from config.config_data import COLUMN_DEFINITIONS, DEBUG
 

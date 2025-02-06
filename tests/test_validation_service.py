@@ -10,7 +10,7 @@ class MockEntry:
         return self.value  # Simulate retrieving user input
 
 import unittest
-from src.services.validation_service import ValidationService
+from services.validation_service import ValidationService
 
 class TestValidationService(unittest.TestCase):
     def setUp(self):

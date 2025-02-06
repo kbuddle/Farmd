@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from src.database.database_manager import DatabaseManager
-from src.ui.edit_component import EditComponentWindow
-from src.models.assembly import Assembly
+from database.database_manager import DatabaseManager
+from ui.edit_component import EditComponentWindow
+from models.assembly import Assembly
 
 class AssemblyBuilder(tk.Toplevel):
     def __init__(self, parent, assembly_id):

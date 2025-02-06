@@ -1,8 +1,8 @@
 # subject to redistribution within new filing structure.
 
 from config.config_data import DATABASE_PATH
-from src.models.item import Item 
-from src.database.database_manager import DatabaseManager
+from models.item import Item 
+from database.database_manager import DatabaseManager
 
 
 class Part(Item):

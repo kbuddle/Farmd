@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from src.models.item import Assembly, Part, Supplier  # ✅ Import subclasses
+from models.item import Assembly, Part, Supplier  # ✅ Import subclasses
 from ui.ui_helpers import create_buttons_frame
 from ui.ui_components import create_datasheet_view
 

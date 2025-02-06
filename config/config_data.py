@@ -19,12 +19,19 @@ print(f"✅ SRC_DIR: {SRC_DIR}")
 print(f"✅ DATABASE_PATH: {DATABASE_PATH}")
 print(f"✅ BACKUP_FOLDER: {BACKUP_FOLDER}") """
 
+ENTITY_ID_MAPPING = {
+            "Assemblies": "AssemblyID",
+            "Parts": "PartID",
+            "Drawings": "DrawingID",
+            "Images": "ImageID",
+            "Suppliers": "SupplierID"
+        }
 
 COLUMN_DEFINITIONS = {
     "Assemblies": {
         "columns": {
             "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["A1", "A2"]},
-            "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
+            "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "A3"]},
             "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"], "default": 40},
             "AssemImageRef": {"display_name": "Image File", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "ImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 26},
@@ -38,24 +45,24 @@ COLUMN_DEFINITIONS = {
             "AssemCostFlag": {"display_name": "Cost Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
             "AssemWeightFlag": {"display_name": "Weight Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
             "AssemStatus": {"display_name": "Status", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": False, "views": ["A1", "A2"]},
+            "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "A3"]},
+            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": False, "views": ["A1", "A2", "A3"]},
             "CreationDate": {"display_name": "Creation Date", "width": 100, "type": "string", "default": 0, "edit": False, "views": ["A1"]},
             "LastUpdatedDate": {"display_name": "Updated Date", "width": 100, "type": "string", "edit": False, "views": ["A1"]}
         }
     },"Parts": {
         "columns": {
             "PartID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["P1", "P2"]},
-            "PartName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["P1", "P2"]},
-            "Model": {"display_name": "Model", "width": 100, "type": "string", "edit": True, "views": ["P1", "P2"]},
+            "PartName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
+            "Model": {"display_name": "Model", "width": 100, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
             "Make": {"display_name": "Make", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
-            "Dimensions": {"display_name": "Dimensions", "width": 150, "type": "string", "edit": True, "views": ["P1", "P2"]},
-            "Notes": {"display_name": "Notes", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
+            "Dimensions": {"display_name": "Dimensions", "width": 150, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
+            "Notes": {"display_name": "Notes", "width": 100, "type": "string", "edit": True, "views": ["P1", "P3"]},
             "Manufacturer": {"display_name": "Manufacturer", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
             "ImageID": {"display_name": "ImageID", "width": 100, "type": "int", "edit": True, "views": ["P1", "I1"], "default": 26},
             "DrawingID": {"display_name": "DrawingID", "width": 100, "type": "int", "foreign_key": True, "default": 266, "edit": True, "views": ["P1", "D1"]},
             "ManPartNum": {"display_name": "ManPartNum", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
-            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": True, "views": ["P1"]},
+            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": True, "views": ["P1", "P3"]},
             "PartWeight": {"display_name": "Weight", "width": 80, "type": "float", "default": 0, "edit": True, "views": ["P1"]},
             "PartMaterial": {"display_name": "Material", "width": 100, "type": "string", "edit": True, "views": ["P1"]}
         }
@@ -95,16 +102,17 @@ COLUMN_DEFINITIONS = {
         "columns": {
             "ID": {"display_name": "ID", "width": 56, "type": "int", "is_primary_key": True, "edit": False, "views": ["AP1", "AP2"]},
             "ParentAssemblyID": {"display_name": "ParentAssemblyID", "width": 50, "type": "int", "edit": True, "views": ["AP1"]},
-            "EntityType": {"display_name": "Entity Type", "width": 150, "type": "string", "edit": False, "views": ["AP1"]},
-            "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase", "edit": True, "views": ["AP1"]},
+            "EntityType": {"display_name": "Entity Type", "width": 150, "type": "string", "edit": False, "views": ["AP1", "AP2"]},
+            "ProcurementType": {"display_name": "Procurement Type", "width": 100, "default": "Purchase", "edit": True, "views": ["AP1", "AP2"]},
             "ChildAssemblyID": {"display_name": "Child Assembly ID", "width": 60, "type": "int", "foreign_key": True, "default": 40, "edit": True, "views": ["AP1"]},
             "PartID": {"display_name": "Part ID", "width": 60, "type": "int", "edit": True, "views": ["AP1"]},
-            "Quantity": {"display_name": "Quantity", "width": 60, "type": "real", "edit": True, "views": ["AP1"]},
+            "Quantity": {"display_name": "Quantity", "width": 60, "type": "real", "edit": True, "views": ["AP1", "AP2"]},
             "HoursParts": {"display_name": "Hours for Parts", "width": 60, "type": "real", "edit": False, "views": ["AP1"]},
             "HoursAssembly": {"display_name": "Hours to Assemble", "width": 60, "type": "real", "edit": True, "views": ["AP1"]},
             "TotalHours": {"display_name": "Total Hours", "width": 60, "type": "real", "edit": False, "views": ["AP1"]},
             "AssemFocus": {"display_name": "Focus", "width": 200, "type": "string", "edit": True, "views": ["AP1"]},
-            "deleteFlag": {"display_name": "Delete Flag", "width": 200, "type": "string", "admin": True, "edit": True, "views": ["AP1"]}
+            "deleteFlag": {"display_name": "Delete Flag", "width": 200, "type": "string", "admin": True, "edit": True, "views": ["AP1"]},
+            "Units": {"display_name": "UoM", "width": 30, "type": "string", "edit": True, "views": ["AP1", "AP2"], "default": "EA"}
         }
     }
 }
@@ -173,6 +181,19 @@ STATIC_VIEW_DEFINITIONS = {
         "title": "Assemblies Management",
         "geometry": "900x800",
         "detail_frame": {"text": "Assembly Details"},
+        "button_frame": {
+            "buttons": {
+                "Save": "save_item",
+                "Clone": "clone_item",
+                "Delete": "delete_item",
+                "Back": "show_landing_page"
+            }
+        }
+    },
+    "AssembliesParts": {
+        "title": "Assemblies Component Management",
+        "geometry": "900x800",
+        "detail_frame": {"text": "Component Details"},
         "button_frame": {
             "buttons": {
                 "Save": "save_item",

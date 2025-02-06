@@ -1,4 +1,4 @@
-from src.database.database_service import DatabaseService
+from database.database_service import DatabaseService
 
 
 class Item:
@@ -10,7 +10,9 @@ class Item:
         self.primary_key = primary_key
 
     def fetch_all(self):
-        return self.db_service.fetch_all(self.table_name)
+        """Retrieve all records from the table as dictionaries."""
+        query = f"SELECT * FROM {self.table_name};"
+        return self.db_service.fetch_all_dict(query)  # ✅ Uses a proper SQL query
 
     def add(self, data):
         self.db_service.add_item(self.table_name, data)

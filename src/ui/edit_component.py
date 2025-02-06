@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from src.database.database_manager import DatabaseManager
+from database.database_manager import DatabaseManager
 
 class EditComponentWindow(tk.Toplevel):
     def __init__(self, parent, assembly_id, component_id, component_name, current_quantity):

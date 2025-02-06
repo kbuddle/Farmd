@@ -5,8 +5,8 @@ import tkinter as tk
 from tkinter import ttk, Frame, Label, Button, messagebox
 
 from config.config_data import DEBUG
-from src.core.view_management import get_processed_columns
-from src.models.item import Assembly, Part, Supplier  # Import CRUD models`
+from core.view_management import get_processed_columns
+from models.item import Assembly, Part, Supplier  # Import CRUD models`
 
 
 class ScrollableFrame(ttk.LabelFrame):  # Change from ttk.Frame to ttk.LabelFrame
@@ -48,8 +48,8 @@ def create_datasheet_tab(parent, context_name, db_manager):
     Returns:
         tk.Frame: The created frame for the datasheet tab.
     """
-    from src.database.query_generator import DatabaseQueryGenerator   
-    from src.database.database_manager import DatabaseManager
+    from database.query_generator import DatabaseQueryGenerator   
+    from database.database_manager import DatabaseManager
     tab_frame = tk.Frame(parent)
     tab_frame.pack(fill="both", expand=True)
 
@@ -183,7 +183,7 @@ def create_available_parts_view(parent_widget, assembly_id, debug=DEBUG):
         ttk.Treeview: The created datatable view.
     """
     from tkinter import ttk, Frame, Entry, Label, StringVar
-    from src.ui.shared_utils import sort_table, populate_table
+    from ui.shared_utils import sort_table, populate_table
     from core.database_queries import fetch_available_items
 
     if debug:
@@ -344,7 +344,7 @@ def create_assemblies_screen(parent_widget):
     """
         
     print("✅ DEBUG: Creating main assemblies screen")
-    from src.ui.ui_helpers import get_selected_assembly
+    from ui.ui_helpers import get_selected_assembly
 
     # ✅ Create frame for assemblies list
     table_frame, assemblies_table = create_assemblies_screen(parent_widget)
@@ -379,7 +379,7 @@ def create_card_frame(parent_frame, entity_data, view_name="card_view", on_edit_
     """
     import os
     from config.config_data import VIEW_DEFINITIONS, DEBUG
-    from src.database.Database_utils import get_assembly_image
+    from database.Database_utils import get_assembly_image
     from PIL import Image, ImageTk
 
     # Get the fields to display for the selected view

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import Frame, Button
-from src.ui.ui_components import create_entity_table
-from src.core.service_container import ServiceContainer
+from ui.ui_components import create_entity_table
+from core.service_container import ServiceContainer
 
 class EntityScreen:
     """Generic UI for displaying entities (Parts, Suppliers, etc.) with CRUD operations."""

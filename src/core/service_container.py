@@ -1,7 +1,7 @@
 import logging
-from src.database.database_service import DatabaseService
-from src.database.database_manager import DatabaseManager
-from src.ui.datasheet_ui import DatasheetUI
+from database.database_service import DatabaseService
+from database.database_manager import DatabaseManager
+from ui.datasheet_ui import DatasheetUI
 from config.config_data import DATABASE_PATH
 class ServiceContainer:
     """Centralized container to manage service dependencies."""

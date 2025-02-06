@@ -1,6 +1,6 @@
 # subject to redistribution within new filing structure.
 
-from src.database.database_manager import DatabaseManager
+from database.database_manager import DatabaseManager
 from config.config_data import DATABASE_PATH
 
 

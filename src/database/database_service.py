@@ -5,9 +5,9 @@ import tkinter as messagebox
 
 
 from config.config_data import DATABASE_PATH, COLUMN_DEFINITIONS
-from src.database.database_manager import DatabaseManager
-from src.database.query_generator import QueryGenerator
-from src.services.validation_service import ValidationService
+from database.database_manager import DatabaseManager
+from database.query_generator import QueryGenerator
+from services.validation_service import ValidationService
 
 
 
@@ -153,5 +153,20 @@ class DatabaseService:
             print(f"❌ Database error in fetch_raw: {e}")
             return []
 
-    def execute_query(self, query, params=()):
-        return self.db_manager.execute_query(query, params)
+    def execute_query(self, query, params=(), commit = False):
+        self.db_manager.cursor.execute(query, params)
+        if commit:
+            self.db_manager.connection.commit() 
+    
+    def fetch_all_dict(self, query, params=()):
+        """Returns all results as a list of dictionaries"""
+        self.db_manager.cursor.execute(query, params)
+        columns = [desc[0] for desc in self.db_manager.cursor.description]  # Get column names
+        return [dict(zip(columns, row)) for row in self.db_manager.cursor.fetchall()]  # Convert to dicts
+
+    def fetch_one_dict(self, query, params=()):
+        """Returns a single result as a dictionary"""
+        self.db_manager.cursor.execute(query, params)
+        columns = [desc[0] for desc in self.db_manager.cursor.description]
+        row = self.db_manager.cursor.fetchone()
+        return dict(zip(columns, row)) 

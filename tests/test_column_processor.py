@@ -28,7 +28,7 @@ importlib.reload(config.config_data)
 print(f"DEBUG: COLUMN_DEFINITIONS at test level after reload: {config.config_data.COLUMN_DEFINITIONS}")
 
 # ✅ Import ColumnProcessor after COLUMN_DEFINITIONS is modified
-from src.database.helpers import ColumnProcessor
+from database.helpers import ColumnProcessor
 
 class TestColumnProcessor(unittest.TestCase):
     

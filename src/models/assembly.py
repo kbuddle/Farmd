@@ -1,10 +1,10 @@
-from src.models.item import Item
-from src.database.database_manager import DatabaseManager
+from models.item import Item
+from database.database_manager import DatabaseManager
 
 VALID_PROCUREMENT_TYPES = {"Purchase", "Make", "Hybrid"}
 
-from src.models.item import Item
-from src.database.database_manager import DatabaseManager
+from models.item import Item
+from database.database_manager import DatabaseManager
 
 VALID_PROCUREMENT_TYPES = {"Purchase", "Make", "Hybrid"}
 
@@ -46,18 +46,21 @@ class Assembly(Item):
 
         self.update_procurement_type()
 
-    def add_part(self, part_id, quantity):
-        """ Assigns a part to this assembly and updates procurement type. """
+    def add_part(self, part_id, entity_type, quantity=1, unit="each"):
+        """Assigns a part or assembly to an assembly based on predefined selection."""
+        
+        valid_types = {"Part", "Assembly"}
+        if entity_type not in valid_types:
+            raise ValueError(f"Invalid EntityType: {entity_type}. Must be 'Part' or 'Assembly'.")
+
         query = """
-            INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, Quantity)
-            VALUES (?, ?, ?)
-            ON CONFLICT(ParentAssemblyID, PartID) 
-            DO UPDATE SET Quantity = Assemblies_Parts.Quantity + excluded.Quantity
+        INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, Quantity, Units, EntityType)
+        VALUES (?, ?, ?, ?, ?)
         """
         db_manager = DatabaseManager()
-        db_manager.execute_query(query, (self.item_id, part_id, quantity), commit=True)
+        db_manager.execute_query(query, (self.item_id, part_id, quantity, unit, entity_type), commit=True)
 
-        self.update_procurement_type()
+        print(f"✅ Successfully added {entity_type} with PartID {part_id} to ParentAssemblyID {self.item_id}.")
 
     def remove_part(self, part_id):
         """ Removes a part from the assembly and updates procurement type. """

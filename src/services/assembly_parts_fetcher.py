@@ -1,4 +1,4 @@
-from src.database.database_manager import DatabaseManager
+from database.database_manager import DatabaseManager
 
 class AssemblyPartsFetcher:
     """

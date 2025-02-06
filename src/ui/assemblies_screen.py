@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import Frame, Button
-from src.ui.ui_events import on_assembly_selection
-from src.ui.ui_components import create_assemblies_table
-from src.core.service_container import ServiceContainer
+from ui.ui_events import on_assembly_selection
+from ui.ui_components import create_assemblies_table
+from core.service_container import ServiceContainer
 
 class AssembliesScreen:
     """Handles the UI layout and interaction for the Assemblies module."""
