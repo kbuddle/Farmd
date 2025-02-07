@@ -3,6 +3,7 @@ from tkinter import Frame, Label, Button
 from PIL import Image, ImageTk
 import os
 from config.config_data import IMAGE_FOLDER
+import tkinter.font as tkFont
 
 class LandingPage(Frame):
     def __init__(self, parent, controller):
@@ -27,8 +28,9 @@ class LandingPage(Frame):
 
         title_label = Label(top_panel, text="Farmbot Builder", font=("Arial", 32, "bold"), bg="lightblue")
         title_label.pack(pady=(30, 5))
+        custom_font = tkFont.Font(family="Magneto", size=16, weight="bold")
 
-        subtitle_label = Label(top_panel, text="by Buddski 2025", font=("Arial", 16), bg="lightblue")
+        subtitle_label = tk.Label(top_panel, text="by Buddski 2025", font=custom_font, bg="lightblue")  
         subtitle_label.pack(pady=(0, 10))
 
         # MIDDLE PANEL: Canvas for Image
