@@ -31,7 +31,6 @@ class ValidationService:
 
         return value
 
-
     def extract_form_data(self, form_data, context, is_new_entry):
         """Extracts and preprocesses form data (applies defaults, type conversion)."""
         if context not in self.column_definitions:
@@ -62,7 +61,6 @@ class ValidationService:
             cleaned_data[field_name] = value
 
         return cleaned_data  # ✅ Returns processed dictionary
-
 
     def validate_form_data(self, context, form_data, is_new_entry):
         """Validates form data before inserting or updating the database and returns cleaned data."""
@@ -113,9 +111,6 @@ class ValidationService:
         print(f"✅ Final Cleaned Data After Validation: {cleaned_data}")
         return cleaned_data  # ✅ Returns validated data
 
-
-
-
     def validate_table_selection(self, table, context):
         """Ensures a selection has been made in a table."""
         selected_item = table.selection()
@@ -150,3 +145,15 @@ class ValidationService:
         if not isinstance(contexts, dict):
             raise TypeError(f"❌ 'contexts' must be a dictionary, got {type(contexts)}")
 
+    def validate_assembly_part_assignment(self, part_id, child_assembly_id):
+        """Ensures that either PartID or ChildAssemblyID is set, but not both."""
+        if not part_id and not child_assembly_id:
+            raise ValueError("Both PartID and ChildAssemblyID are missing. One must be provided.")
+        
+        if part_id is None and child_assembly_id is None:
+            raise ValueError("❌ Validation Error: Both PartID and ChildAssemblyID cannot be NULL!")
+
+        if part_id is not None and child_assembly_id is not None:
+            raise ValueError("❌ Validation Error: Both PartID and ChildAssemblyID cannot be set at the same time!")
+
+        return True  # ✅ Passed validation

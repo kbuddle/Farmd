@@ -4,14 +4,16 @@ DEBUG = True
 
 # ✅ Get absolute path of `config_data.py`
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, ".."))
 
 # ✅ Move up **one level** to `src/`
-SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "src"))
+SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 
 # ✅ Set database path inside `src/database/`
 DATABASE_PATH = os.path.join(SRC_DIR, "database", "Farmbot.db")
 BACKUP_FOLDER = os.path.join(SRC_DIR, "database", "backups")
-IMAGE_FOLDER = "D:\FarmbotPythonV2\images"
+
+IMAGE_FOLDER = os.path.join(PROJECT_ROOT, "images")
 
 """ # Debugging output to confirm paths
 print(f"✅ BASE_DIR: {BASE_DIR}")
@@ -31,7 +33,7 @@ COLUMN_DEFINITIONS = {
     "Assemblies": {
         "columns": {
             "AssemblyID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["A1", "A2"]},
-            "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "A3"]},
+            "AssemName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "AP3"]},
             "ParentAssemblyID": {"display_name": "ParentID", "width": 100, "type": "int", "edit": True, "foreign_key": True, "views": ["A1"], "default": 40},
             "AssemImageRef": {"display_name": "Image File", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
             "ImageID": {"display_name": "ImageID", "width": 50, "type": "int", "edit": False, "foreign_key": True,"views": ["A1"], "default": 26},
@@ -45,24 +47,24 @@ COLUMN_DEFINITIONS = {
             "AssemCostFlag": {"display_name": "Cost Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
             "AssemWeightFlag": {"display_name": "Weight Flag", "width": 50, "type": "int", "edit": True, "views": ["A1"], "default":0},
             "AssemStatus": {"display_name": "Status", "width": 100, "type": "string", "edit": True, "views": ["A1", "A2"]},
-            "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "A3"]},
-            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": False, "views": ["A1", "A2", "A3"]},
+            "AssemNotes": {"display_name": "Notes", "width": 200, "type": "string", "edit": True, "views": ["A1", "A2", "AP3"]},
+            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": False, "views": ["A1", "A2", "AP3"]},
             "CreationDate": {"display_name": "Creation Date", "width": 100, "type": "string", "default": 0, "edit": False, "views": ["A1"]},
             "LastUpdatedDate": {"display_name": "Updated Date", "width": 100, "type": "string", "edit": False, "views": ["A1"]}
         }
     },"Parts": {
         "columns": {
             "PartID": {"display_name": "ID", "width": 60, "type": "int", "is_primary_key": True, "edit": False, "views": ["P1", "P2"]},
-            "PartName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
-            "Model": {"display_name": "Model", "width": 100, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
+            "PartName": {"display_name": "Name", "width": 200, "type": "string", "edit": True, "views": ["P1", "P2", "AP3"]},
+            "Model": {"display_name": "Model", "width": 100, "type": "string", "edit": True, "views": ["P1", "P2", "AP3"]},
             "Make": {"display_name": "Make", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
-            "Dimensions": {"display_name": "Dimensions", "width": 150, "type": "string", "edit": True, "views": ["P1", "P2", "P3"]},
-            "Notes": {"display_name": "Notes", "width": 100, "type": "string", "edit": True, "views": ["P1", "P3"]},
+            "Dimensions": {"display_name": "Dimensions", "width": 150, "type": "string", "edit": True, "views": ["P1", "P2", "AP3"]},
+            "Notes": {"display_name": "Notes", "width": 100, "type": "string", "edit": True, "views": ["P1", "AP3"]},
             "Manufacturer": {"display_name": "Manufacturer", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
             "ImageID": {"display_name": "ImageID", "width": 100, "type": "int", "edit": True, "views": ["P1", "I1"], "default": 26},
             "DrawingID": {"display_name": "DrawingID", "width": 100, "type": "int", "foreign_key": True, "default": 266, "edit": True, "views": ["P1", "D1"]},
             "ManPartNum": {"display_name": "ManPartNum", "width": 100, "type": "string", "edit": True, "views": ["P1"]},
-            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": True, "views": ["P1", "P3"]},
+            "ProcurementType": {"display_name": "ProcurementType", "width": 100, "type": "string", "default": "Purchase", "edit": True, "views": ["P1", "AP3"]},
             "PartWeight": {"display_name": "Weight", "width": 80, "type": "float", "default": 0, "edit": True, "views": ["P1"]},
             "PartMaterial": {"display_name": "Material", "width": 100, "type": "string", "edit": True, "views": ["P1"]}
         }
@@ -277,4 +279,14 @@ VIEW_DEFINITIONS = derive_view_definitions(COLUMN_DEFINITIONS, STATIC_VIEW_DEFIN
 import pprint
 pprint.pprint(VIEW_DEFINITIONS) """
 
+def get_ap3_field_mapping():
+    return {
+        "ID": "COALESCE(Parts.PartID, Assemblies.AssemblyID) AS ID",
+        "Name": "COALESCE(Parts.PartName, Assemblies.AssemName) AS Name",
+        "EntityType": "CASE WHEN Parts.PartID IS NOT NULL THEN 'Part' ELSE 'Assembly' END AS EntityType",
+        "Notes": "COALESCE(Parts.Notes, Assemblies.AssemNotes) AS Notes",
+        "ProcurementType": "COALESCE(Parts.ProcurementType, Assemblies.ProcurementType) AS ProcurementType",
+        "Model": "Parts.Model AS Model",
+        "Dimensions": "Parts.Dimensions AS Dimensions"
+    }
 

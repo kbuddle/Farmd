@@ -46,21 +46,34 @@ class Assembly(Item):
 
         self.update_procurement_type()
 
-    def add_part(self, part_id, entity_type, quantity=1, unit="each"):
-        """Assigns a part or assembly to an assembly based on predefined selection."""
+    def assign_component(self, component_id, entity_type, quantity=1, unit="each"):
+        """Assigns a component (part or assembly) to an assembly while ensuring correct column mapping."""
         
         valid_types = {"Part", "Assembly"}
         if entity_type not in valid_types:
             raise ValueError(f"Invalid EntityType: {entity_type}. Must be 'Part' or 'Assembly'.")
 
-        query = """
-        INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, Quantity, Units, EntityType)
-        VALUES (?, ?, ?, ?, ?)
-        """
-        db_manager = DatabaseManager()
-        db_manager.execute_query(query, (self.item_id, part_id, quantity, unit, entity_type), commit=True)
+        # ✅ Ensure NULL values are set correctly for database integrity
+        if entity_type == "Part":
+            query = """
+            INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, ChildAssemblyID, Quantity, Units, EntityType)
+            VALUES (?, ?, NULL, ?, ?, ?)
+            """
+            params = (self.item_id, component_id, quantity, unit, entity_type)
+        else:  # entity_type == "Assembly"
+            query = """
+            INSERT INTO Assemblies_Parts (ParentAssemblyID, PartID, ChildAssemblyID, Quantity, Units, EntityType)
+            VALUES (?, NULL, ?, ?, ?, ?)
+            """
+            params = (self.item_id, component_id, quantity, unit, entity_type)
 
-        print(f"✅ Successfully added {entity_type} with PartID {part_id} to ParentAssemblyID {self.item_id}.")
+        db_manager = DatabaseManager()
+        db_manager.execute_query(query, params, commit=True)
+
+        print(f"✅ Successfully assigned {entity_type} with ID {component_id} to ParentAssemblyID {self.item_id}.")
+
+        # ✅ Update procurement type after modification
+        self.update_procurement_type()
 
     def remove_part(self, part_id):
         """ Removes a part from the assembly and updates procurement type. """
