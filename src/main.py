@@ -16,6 +16,7 @@ from config.config_data import DEBUG, VIEW_DEFINITIONS, IMAGE_FOLDER
 from ui.entity_screen import EntityScreen
 from database.database_manager import DatabaseManager
 from forms.entity_form import EntityForm
+from src.landing_pages import LandingPage
 
 print("✅ main.py has started executing!")
 
@@ -33,89 +34,27 @@ class MainApplication(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Home Screen")
-        self.geometry("1000x800")
+        self.geometry("1200x800")
+        
+        # Set initial window size
+        window_width = 1000
+        window_height = 800
+
+        # Center the window (using the method inside the class)
+        self.center_window_vertically(window_width, window_height)
+
         self.main_container = Frame(self)
         self.main_container.pack(fill=tk.BOTH, expand=True)
+
         self.show_landing_page()
 
-    from PIL import Image, ImageTk
-
     def show_landing_page(self):
-        self.clear_main_container()
-
-        # Create a Canvas widget to hold the background image (create only once)
-        if not hasattr(self, "canvas"):
-            self.canvas = tk.Canvas(self.main_container)
-            self.canvas.pack(fill=tk.BOTH, expand=True)
-
-        # Create the button frame that will sit over the image (horizontally aligned at the top)
-        button_frame = Frame(self.main_container, bg="white")  # Transparent background (same as canvas color)
-        button_frame.pack(fill=tk.X, side=tk.TOP)  # Pack the frame horizontally at the top
-
-        # Add buttons to the frame
-        Button(button_frame, text="Assemblies", command=self.show_assemblies).pack(side=tk.LEFT, padx=10)
-        Button(button_frame, text="Parts", command=self.show_parts).pack(side=tk.LEFT, padx=10)
-        Button(button_frame, text="Suppliers", command=self.show_suppliers).pack(side=tk.LEFT, padx=10)
-        Button(button_frame, text="Drawings", command=self.show_drawings).pack(side=tk.LEFT, padx=10)
-        Button(button_frame, text="Images", command=self.show_images).pack(side=tk.LEFT, padx=10)
-        Button(button_frame, text="Exit", command=self.quit).pack(side=tk.LEFT, padx=10)
-
-        # Load and resize the background image
-        background_image_path = os.path.join(IMAGE_FOLDER, "farmbot_genesis_xl_v1.7.png")
-        print(f"here is image path: {background_image_path}")
-
-        try:
-            img = Image.open(background_image_path)
-            # Convert the image to a format tkinter can work with
-            self.background_image = ImageTk.PhotoImage(img)  # Keep the reference in an instance variable
-            
-            # If canvas already has an image, update it instead of recreating
-            if hasattr(self, "canvas_image"):
-                self.canvas.itemconfig(self.canvas_image, image=self.background_image)  # Update the image
-            else:
-                self.canvas_image = self.canvas.create_image(0, 0, image=self.background_image, anchor="nw")
-            
-            # Resize the image to fit the window initially
-            self.resize_image(img)
-
-            # Bind window resize event to update image size
-            self.bind("<Configure>", lambda event: self.resize_image(img))
-            
-        except Exception as e:
-            print(f"Error loading image: {e}")
-
-    def resize_image(self, img):
-        """Resizes the background image and updates it on the canvas"""
-        new_width = self.winfo_width()
-        new_height = self.winfo_height()
-
-        # Resize the image to fit the window, maintaining the aspect ratio
-        img_resized = img.resize((new_width, new_height), Image.LANCZOS)
-
-        # Update the image on the canvas
-        self.background_image = ImageTk.PhotoImage(img_resized)  # Update reference
-        self.canvas.itemconfig(self.canvas_image, image=self.background_image)  # Update image
-
-
-            
-    def resize_image(self, canvas, img):
-        """Resizes the background image and updates it on the canvas"""
-        new_width = self.winfo_width()
-        new_height = self.winfo_height()
-
-        # Resize the image to fit the window, maintaining the aspect ratio
-        img_resized = img.resize((new_width, new_height), Image.LANCZOS)
-
-        # Update the image on the canvas
-        self.background_image = ImageTk.PhotoImage(img_resized)  # Update reference
-        canvas.itemconfig(self.canvas_image, image=self.background_image)  # Update image
-
-
-
-
-
+        """Loads the Landing Page into main container"""
+        self.clear_main_container()  # Clear previous content
+        self.lander = LandingPage(self.main_container, self)  # Create landing page inside main_container
 
     def clear_main_container(self):
+        """Removes all widgets from the main container"""
         for widget in self.main_container.winfo_children():
             widget.destroy()
 
@@ -195,6 +134,25 @@ class MainApplication(tk.Tk):
         images_window = EntityForm(self.main_container, "Images", tree_view_def, detail_view_def, db_service, self)
 
         images_window.pack(fill=tk.BOTH, expand=True)
+
+    def center_window_vertically(window, width, height):
+        """
+        Centers a window vertically on the screen.
+        
+        Args:
+            window (tk.Toplevel or tk.Tk): The window to center.
+            width (int): The width of the window.
+            height (int): The height of the window.
+        """
+        # Get the screen height
+        screen_height = window.winfo_screenheight()
+    
+        # Calculate the x and y position
+        x_position = (window.winfo_screenwidth() - width) // 2  # Horizontally centered
+        y_position = (screen_height - height) // 2  # Vertically centered
+
+        # Set the window size and position
+        window.geometry(f"{width}x{height}+{x_position}+{y_position}")
 
 if __name__ == "__main__":
     app = MainApplication()
