@@ -48,7 +48,7 @@ class MainApplication(tk.Tk):
         self.main_container = Frame(self)
         self.main_container.pack(fill=tk.BOTH, expand=True)
 
-<<<<<<< HEAD
+<<<<<<<<< Temporary merge branch 1
         self.show_landing_page()
 
     def show_landing_page(self):
@@ -58,7 +58,7 @@ class MainApplication(tk.Tk):
 
     def clear_main_container(self):
         """Removes all widgets from the main container"""
-=======
+=========
         # ✅ Load background image ONCE and keep reference
         background_image_path = os.path.join(IMAGE_FOLDER, "farmbot_genesis_xl_v1.7.png")
         try:
@@ -189,7 +189,7 @@ class MainApplication(tk.Tk):
     def clear_main_container(self):
         """Clears the main container and unbinds events to prevent errors."""
         self.unbind("<Configure>")  # ✅ Unbind to prevent callbacks after canvas is destroyed
->>>>>>> c1368024e6766cb1fceb4f2f42b72a8afe6ae848
+>>>>>>>>> Temporary merge branch 2
         for widget in self.main_container.winfo_children():
             widget.destroy()
 
