@@ -1,0 +1,6 @@
+{
+    "editor.pasteAs.preferences": [
+
+    ],
+    "terminal.integrated.env.windows": {"PYTHONPATH": "D:/FarmbotPythonV2/src"}
+}
